@@ -1,0 +1,57 @@
+.popupDialog {
+	width: 300px;
+	font-size: 14px;
+	font-family: var(--main-font-family);
+	padding: 8px;
+	color: black;
+	border: 1px solid black;
+	border-radius: 5px;
+	box-shadow: 2px 2px gray;
+	background-color: var(--main-comp-color);
+	visibility:hidden;
+	z-index: 20;
+	position: absolute;
+}
+
+.popupDialog p {
+	white-space: normal;
+}
+
+.popupDialog .title {
+	font-weight: bold;
+	font-color: black;
+	text-align: center;
+}
+
+.popupDialog .instructions {
+	width: 300px;
+}
+
+.popupDialog .error {
+	margin: 4px;
+	border: 1px solid gray;
+	padding: 2px;
+	margin: 4px;
+	visiblity:hidden;
+	background: yellow;
+	color: black;
+}
+
+.popupDialog .buttonBar {
+	padding: 4px;
+	margin: 15px;
+	white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.popupDialog .buttonBar button {
+	background-color: var(--main-fg-color);
+	border-radius: 4px;
+	color: black;
+	float: left;
+	margin-right: 10px;
+}
+
+.popupDialog .buttonBar button[title="Cancel"] {
+	float: right;
+}

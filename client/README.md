@@ -1,4 +1,4 @@
-# project-x
+# Casewhiz
 
 ## Project setup
 ```

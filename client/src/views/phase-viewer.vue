@@ -1,45 +1,54 @@
 <script>
 import PropertyDrawer from "@/views/property-drawer.vue";
+import WidgetsBar from "@/views/widgets-bar.vue";
+import ListBar from "@/views/list-bar.vue";
+import { mapGetters } from "vuex";
+
 export default {
   name: "PhaseViewer",
   components: {
-    PropertyDrawer
+    PropertyDrawer,
+    WidgetsBar,
+    ListBar
   },
   data: function() {
     return {
-      selected: null,
-      start: 1,
-      end: 3,
-      inc: 3,
-      phases: [
-        {
-          id: "1",
-          title: "phase1",
-          submit: "Submit"
-        },
-        {
-          id: "2",
-          title: "phase2",
-          submit: "Submit"
-        },
-        {
-          id: "3",
-          title: "phase3",
-          submit: "Submit"
-        }
-      ]
+      left: 0,
+      barStyle: "",
+      menuType: "none"
     };
   },
   methods: {
-    scrollLeft: function() {
-      this.start = this.start - this.inc < 1 ? 1 : this.start - this.inc;
+    submit: function() {},
+    setCurrentPhase(phase) {
+      this.$store.commit("setCurrentPhase", phase);
     },
-    scrollRight: function() {
-      this.start =
-        this.start + this.inc > this.end
-          ? this.end - this.inc
-          : this.start + this.inc;
+    handleClick(e) {
+      if (this.menuType === "none") {
+        this.menuType = e.target.textContent === "•" ? "list" : "widget";
+        this.barStyle = " left:" + e.pageX + "px;";
+        this.barStyle += " top:" + e.pageY + "px;";
+      } else {
+        this.menuType = "none";
+        this.barStyle = "";
+      }
+    },
+    hide() {
+      this.menuType = "none";
+    },
+    slide(dx) {
+      const panel = document.getElementById("phase-panel");
+      this.left += dx;
+      panel.style.left = this.left + "px";
     }
+  },
+  computed: {
+    ...mapGetters([
+      "currentPhase",
+      "currentRole",
+      "getPhases",
+      "currentSubmitTitle"
+    ])
   }
 };
 </script>
@@ -47,18 +56,48 @@ export default {
 <template>
   <div id="phase-content">
     <div id="phase-bar">
-      <a id="left-phase"><img src="@/assets/img/triangle.png"/></a>
-      <button
-        v-for="phase in phases"
-        :key="phase.id"
-        @click="selected = phase"
-        :class="['phase-button', { active: selected === phase }]"
-      >
-        {{ phase.title }}
-      </button>
-      <a id="right-phase"><img src="@/assets/img/triangle.png"/></a>
+      <div class="left-phase">
+        <img
+          src="@/assets/img/triangle.png"
+          @click="slide(150)"
+          :class="['left-img', { show: this.left < 0 }]"
+        />
+      </div>
+      <div id="phase-panel">
+        <button
+          v-for="(phase, index) in getPhases"
+          :key="phase.id"
+          @click="setCurrentPhase(index)"
+          :class="['phase-button', { active: currentPhase == index }]"
+        >
+          {{ phase.title }}
+        </button>
+      </div>
+      <div class="right-phase">
+        <img
+          src="@/assets/img/triangle.png"
+          @click="slide(-150)"
+          :class="['right-img', { show: this.left > -800 }]"
+        />
+      </div>
     </div>
-    <PropertyDrawer></PropertyDrawer>
+    <div @click="handleClick($event)">
+      <div id="viewerContainer"></div>
+    </div>
+    <div v-if="currentRole === 'designer'">
+      <WidgetsBar
+        v-if="menuType === 'widget'"
+        :barStyle="barStyle"
+        @hide="hide"
+      >
+      </WidgetsBar>
+      <ListBar v-if="menuType === 'list'" :barStyle="barStyle" @hide="hide">
+      </ListBar>
+      <PropertyDrawer></PropertyDrawer>
+    </div>
+    <div id="submit-panel">
+      <button @click="submit">{{ currentSubmitTitle }}</button>
+    </div>
   </div>
 </template>
 
@@ -69,6 +108,7 @@ export default {
   width: 70%;
   height: 100%;
   padding: 0px;
+  background-color: #eeeefe;
 }
 #phase-bar {
   display: block;
@@ -76,9 +116,15 @@ export default {
   height: 24px;
   vertical-align: middle;
   background-color: lightblue;
-  padding: 2px 0 2px 0;
+  padding: 2px 10px 2px 0;
   overflow: none;
   border-bottom: 1px solid gray;
+}
+#phase-panel {
+  height: 24px;
+  position: absolute;
+  transition: left 0.3s ease;
+  overflow: hidden;
 }
 .phase-button {
   min-width: 20px;
@@ -96,18 +142,68 @@ export default {
 .active {
   color: #fff;
 }
-#left-phase {
-  cursor: pointer;
-  margin: 0 5px 5px 5px;
-  background-color: lightblue;
+.left-phase {
+  position: relative;
   float: left;
+  background-color: lightblue;
+  width: 24px;
+  height: 100%;
+  display: flex;
+  align-items: center; /* horizontal */
+  justify-content: center; /* vertical */
+  z-index: 2;
+}
+.left-img {
+  visibility: hidden;
   transform: rotate(-90deg);
 }
-#right-phase {
-  cursor: pointer;
-  margin: 0 5px 5px 5px;
-  background-color: lightblue;
+.right-phase {
+  position: relative;
   float: right;
+  background-color: lightblue;
+  width: 24px;
+  height: 100%;
+  display: flex;
+  align-items: center; /* horizontal */
+  justify-content: center; /* vertical */
+  z-index: 2;
+}
+.right-img {
+  visibility: hidden;
   transform: rotate(90deg);
+}
+.hide {
+  visibility: hidden;
+}
+.show {
+  cursor: pointer;
+  visibility: visible;
+}
+#viewerContainer {
+  position: absolute;
+  display: block;
+  width: 100%;
+  height: 700px;
+  overflow: auto;
+  background-color: white;
+}
+#submit-panel {
+  position: relative;
+  width: 100%;
+  height: 30px;
+  top: 630px;
+  display: block;
+  text-align: center;
+  background-color: lightblue;
+  border: 1px solid gray;
+}
+#submit-panel button {
+  border-radius: 5px;
+  margin: 4px;
+  background-color: white;
+  cursor: pointer;
+}
+#submit-panel button:hover {
+  background-color: #e6bbad;
 }
 </style>

@@ -1,19 +1,14 @@
 import Vue from "vue";
 import App from "./App.vue";
 import store from "./store";
+import router from "./router";
 
 Vue.config.productionTip = false;
-var data = {
-  role: "designer",
-  case: {
-    url: "",
-    document: null,
-    userData: null
-  }
-};
+const EventBus = new Vue();
+export default EventBus;
 
 new Vue({
   store,
-  data: data,
+  router,
   render: h => h(App)
 }).$mount("#app");

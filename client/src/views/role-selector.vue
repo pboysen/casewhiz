@@ -1,13 +1,24 @@
 <template>
   <div id="roles">
     <span>Role: </span>
-    <select id="role">
-      <option>Designer</option>
-      <option>Instructor</option>
-      <option>Student</option>
+    <select id="role" @change="setRole($event.target.value)">
+      <option value="designer">Designer</option>
+      <option value="instructor">Instructor</option>
+      <option value="student">Student</option>
     </select>
   </div>
 </template>
+
+<script>
+export default {
+  name: "RoleSelector",
+  methods: {
+    setRole: function(role) {
+      this.$store.commit("setRole", role);
+    }
+  }
+};
+</script>
 
 <style lang="scss">
 #roles {

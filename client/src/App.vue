@@ -8,8 +8,7 @@ export default {
     DesignerBar,
     PhaseViewer,
     ToolBox
-  },
-  created: function() {}
+  }
 };
 </script>
 
@@ -41,5 +40,7 @@ body {
   width: 100%;
   height: 100%;
   white-space: nowrap;
+  background-color: lightblue;
+  border: 1px solid black;
 }
 </style>

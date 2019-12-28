@@ -1,4 +1,4 @@
-<script>
+<script> 
 import DesignerBar from "@/views/designer-bar.vue";
 import PhaseViewer from "@/views/phase-viewer.vue";
 import ToolBox from "@/views/tool-box.vue";

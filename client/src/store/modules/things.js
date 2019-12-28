@@ -16,7 +16,7 @@ const things = {
         isTarget: true,
         isDraggable: true
       },
-      select: {
+      select: { 
         type: "select",
         src: "select.png",
         isSource: true,

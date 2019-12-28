@@ -3,7 +3,7 @@ import Vuex from "vuex";
 import { loadPhase } from "@/util/pdflib.js";
 import things from "./modules/things";
 import responses from "./modules/responses";
-
+ 
 Vue.use(Vuex);
 
 const store = new Vuex.Store({

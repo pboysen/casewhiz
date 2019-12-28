@@ -1,4 +1,4 @@
-<script>
+<script> 
 import PropertyDrawer from "@/views/property-drawer.vue";
 import WidgetsBar from "@/views/widgets-bar.vue";
 import ListBar from "@/views/list-bar.vue";

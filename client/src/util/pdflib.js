@@ -3,7 +3,7 @@
 import pdfjs from "pdfjs-dist/webpack";
 import PDFViewer from "pdfjs-dist/web/pdf_viewer";
 import store from "../store/index";
-import {
+import { 
   PDFLinkService,
   PDFPageView,
   PDFFindController,

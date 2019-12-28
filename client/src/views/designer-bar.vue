@@ -1,4 +1,4 @@
-<script>
+<script> 
 import RoleSelector from "@/views/role-selector.vue";
 import CaseFiler from "@/views/case-filer.vue";
 import { mapGetters } from "vuex";

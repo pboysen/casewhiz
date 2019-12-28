@@ -1,4 +1,4 @@
-<script>
+<script> 
 import { dropHandler, publish } from "@/util/pdflib.js";
 
 export default {

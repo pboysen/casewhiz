@@ -1,4 +1,4 @@
-<script>
+<script> 
 import Resources from "@/views/tools/resources.vue";
 import Comments from "@/views/tools/comments.vue";
 import Observations from "@/views/tools/observations.vue";

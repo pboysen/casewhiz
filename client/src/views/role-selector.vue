@@ -1,4 +1,4 @@
-<template>
+<template> 
   <div id="roles">
     <span>Role: </span>
     <select id="role" @change="setRole($event.target.value)">

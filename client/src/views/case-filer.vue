@@ -1,4 +1,4 @@
-<script> 
+<script>
 import { dropHandler, publish } from "@/util/pdflib.js";
 
 export default {
@@ -14,8 +14,7 @@ export default {
       e.stopPropagation();
       e.preventDefault();
       var msg = dropHandler(e, function(newstate) {
-        console.log(newstate);
-        //this.$store.mutations.setState(newstate);
+        this.$store.commit("setState", newstate);
       });
       var err = document.getElementById("droperror");
       if (msg.length == 0) {
@@ -84,12 +83,12 @@ export default {
 #import {
   font-size: 14px;
   position: absolute;
-  width: 300px;
+  width: 600px;
   height: 300px;
   color: black;
   background-color: lightblue;
   top: 120px;
-  left: 250px;
+  left: 50px;
   padding: 10px;
   z-index: 5;
 }

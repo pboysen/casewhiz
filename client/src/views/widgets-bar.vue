@@ -1,22 +1,17 @@
-<script> 
+<script>
+import { mapGetters } from "vuex";
+
 export default {
   name: "WidgetsBar",
   props: ["barStyle"],
   methods: {
-    makeWidget: function(title, event) {
-      console.log(event);
-      // create widget
+    makeWidget: function(type, event) {
       this.$emit("hide");
+      this.$store.commit("addWidget", { wid: null, type: type, event: event });
     }
   },
   computed: {
-    noListWidgets() {
-      var selected = [];
-      this.$store.getters.selectedWidgets.forEach(w => {
-        if (!w.childType) selected.push(w);
-      });
-      return selected;
-    }
+    ...mapGetters(["noListWidgets"])
   }
 };
 </script>

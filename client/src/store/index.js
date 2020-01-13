@@ -1,8 +1,9 @@
 import Vue from "vue";
 import Vuex from "vuex";
-import { loadPhase } from "@/util/pdflib.js";
+import { setDraggable } from "@/util/pdflib.js";
 import things from "./modules/things";
 import responses from "./modules/responses";
+import { showPhase } from "@/util/pdflib.js";
 
 Vue.use(Vuex);
 
@@ -13,34 +14,32 @@ const store = new Vuex.Store({
   },
   state: {
     filename: "test.pdf",
-    wid: 1,
-    current: {
-      role: "designer",
-      phase: 0,
-      widget: 0,
-      tool: 0
-    },
+    wcnt: 0,
+    role: "designer",
+    phase: 0,
+    tool: 0,
+    widget: null,
     phases: [
       {
         id: 0,
         title: "phase 1",
         submit: "Submit",
-        widgets: [],
-        tools: []
+        widgets: {},
+        tools: {}
       },
       {
         id: 1,
         title: "phase 2",
         submit: "Submit",
-        widgets: [],
-        tools: []
+        widgets: {},
+        tools: {}
       },
       {
         id: 2,
         title: "phase 3",
         submit: "Submit",
-        widgets: [],
-        tools: []
+        widgets: {},
+        tools: {}
       }
     ],
     selectedWidgetTypes: [
@@ -48,92 +47,101 @@ const store = new Vuex.Store({
       "textarea",
       "select",
       "carryforward",
-      "media"
+      "media",
+      "list"
     ],
     selectedToolTypes: ["Resources", "Comments", "Observations"]
   },
   getters: {
-    getPhases(state) {
+    currentRole: state => {
+      return state.role;
+    },
+    currentPhase: state => {
+      return state.phase;
+    },
+    currentWidget: state => {
+      return state.widget;
+    },
+    currentTool: state => {
+      return state.tool;
+    },
+    getPhases: state => {
       return state.phases;
     },
-    currentPhaseTitle(state) {
-      return state.phases[state.current.phase].title;
+    getWidget: state => wid => {
+      return state.phases[state.phase].widgets[wid];
     },
-    currentSubmitTitle(state) {
-      return state.phases[state.current.phase].submit;
+    noListWidgets: () => {
+      var selected = [];
+      store.getters.selectedWidgets.forEach(w => {
+        if (w.type != "list") selected.push(w);
+      });
+      return selected;
     },
-    tools(state) {
+    tools: state => {
       return state.tools;
     },
-    currentPhase(state) {
-      return state.current.phase;
-    },
-    currentWidget(state) {
-      return state.current.widget;
-    },
-    currentRole(state) {
-      return state.current.role;
-    },
-    selectedWidgetTypes(state) {
+    selectedWidgetTypes: state => {
       return state.selectedWidgetTypes;
     },
-    selectedWidgets(state) {
-      var widgets = [];
+    selectedWidgets: state => {
+      let widgets = [];
       state.selectedWidgetTypes.forEach(type => {
-        widgets.push(store.getters["things/getWidget"](type));
+        widgets.push(store.getters["things/getWidgets"][type]);
       });
       return widgets;
     },
-    selectedTools(state) {
+    selectedTools: state => {
       return state.selectedTools;
     },
-    currentTextfieldSize(state) {
-      if (state.current.widget == 0) return 20;
-      var widget =
-        state.phases[state.current.phase].widgets[state.current.widget];
-      return widget.type === "textfield" ? widget.size : 20;
+    phaseTitle: state => {
+      return state.phases[state.phase].title;
     },
-    newWidgetId(state) {
-      return state.wid++;
+    submitTitle: state => {
+      return state.phases[state.phase].submit;
+    },
+    textfieldSize: state => wid => {
+      return state.phases[state.phase].widgets[wid].props.size;
+    },
+    optional: state => wid => {
+      return state.phases[state.phase].widgets[wid].props.optional;
     }
   },
   mutations: {
     setState(state, newstate) {
-      console.log(state, newstate);
-      store.modules = {
-        things: initialState.things,
-        responses: initialState.responses
-      };
-      console.log(store);
-      /*
-      console.log(newstate);
-      Object.keys(initialState).forEach(key => {
-        console.log(key, initialState[key]);
-        Object.assign(state[key], initialState[key]);
-      });
-      */
+      Object.assign(state, newstate);
+      store.dispatch("things/resetState");
+      store.dispatch("responses/resetState");
+      store.setCurrentPhase(0);
     },
     setCurrentPhase(state, n) {
-      loadPhase(state.phases[n]);
-      state.current.phase = n;
+      state.phase = n;
+      showPhase(n);
     },
-    setCurrentWidget(state, n) {
-      state.current.widget = n;
+    setCurrentTool(state, n) {
+      state.tool = n;
     },
-    setCurrentTool(state, tool) {
-      state.current.tool = tool;
+    setCurrentRole(state, aRole) {
+      state.role = aRole;
     },
-    setRole(state, role) {
-      state.current.role = role;
+    setCurrentWidget(state, wid) {
+      if (state.phases[state.phase].widgets[wid]) state.widget = wid;
+      else console.error("Missing widget:", wid, ". Current widget not set.");
     },
     setPhaseTitle(state, title) {
-      state.phases[state.current.phase].title = title;
+      state.phases[state.phase].title = title;
     },
     setSubmitTitle(state, title) {
-      state.phases[state.current.phase].submit = title;
+      state.phases[state.phase].submit = title;
+    },
+    setTextfieldSize(state, size) {
+      state.phases[state.phase].widgets[state.widget].props.size = size;
+    },
+    setOptional(state, optional) {
+      state.phases[state.phase].widgets[state.widget].props.optional = optional;
     },
     setCurrentPhaseTools(state, tools) {
-      state.phases[state.current.phase].tools = tools;
+      state.phases[state.phase].tools = tools;
     },
     setSelectedWidgetTypes(state, selected) {
       state.selectedWidgetTypes = selected;
@@ -141,29 +149,58 @@ const store = new Vuex.Store({
     setSelectedToolTypes(state, selected) {
       state.selectedToolTypes = selected;
     },
-    addWidget(state, widget) {
-      state.phases[state.current.phase].widgets.push(widget);
+    setWidgetRect(state, rect) {
+      state.phases[state.phase].widgets[state.widget].rect = rect;
     },
-    deleteWidget(state, id) {
-      var newwidgets = [];
-      state.phases[state.current.phase].widgets.forEach(w => {
-        if (id != w.id) newwidgets = newwidgets.push(w);
-      });
-      state.phases[state.current.phase].widgets = newwidgets;
+    addWidget(state, info) {
+      info.wid = state.wcnt++;
+      var settings = things.getters.getWidgetSettings(things.state, info);
+      var rec = JSON.parse(JSON.stringify(settings.prototype));
+      rec.id = info.wid;
+      Vue.set(state.phases[state.phase].widgets, rec.id, rec);
+      makeWidget(state, info);
+    },
+    copyWidget(state, info) {
+      var widgetRec = store.getters.getWidget(info.wid);
+      if (widgetRec) {
+        var rec = JSON.parse(JSON.stringify(widgetRec));
+        info.wid = rec.id = state.wcnt++;
+        info.type = widgetRec.type;
+        Vue.set(state.phases[state.phase].widgets, info.wid, rec);
+        makeWidget(state, info);
+      } else {
+        console.error("no wid:" + info.wid);
+      }
+    },
+    deleteWidget(state, wid) {
+      delete state.phases[state.phase].widgets[wid];
     },
     setFileName(state, filename) {
       state.filename = filename;
     }
-  },
-  actions: {}
+  }
 });
 
+const makeWidget = function(state, info) {
+  var settings = things.getters.getWidgetSettings(things.state, info);
+  var wdata = { wid: info.wid };
+  var widget = new settings.constructor({ wdata, store });
+  widget.$mount();
+  var el = widget.$el;
+  document.getElementById("widgetLayer").appendChild(el);
+  el.setAttribute("wid", info.wid);
+  el.style.left = info.event.pageX + 30 + "px";
+  el.style.top = info.event.pageY - 50 + "px";
+  if (settings.isDraggable) setDraggable(el);
+  store.commit("setCurrentWidget", info.wid);
+};
+
+/*
 let initialState = {
   store: store,
   things: things,
   responses: responses
 };
-
 console.log(initialState);
- 
+*/
 export default store;

@@ -1,15 +1,16 @@
-<script> 
+<script>
 import RoleSelector from "@/views/role-selector.vue";
 import CaseFiler from "@/views/case-filer.vue";
-import { mapGetters } from "vuex";
 export default {
-  name: "DesignerBar",
+  name: "MainBar",
   components: {
     RoleSelector,
     CaseFiler
   },
   computed: {
-    ...mapGetters(["currentRole"])
+    isDesigner() {
+      return this.$store.getters.currentRole === "designer";
+    }
   }
 };
 </script>
@@ -18,7 +19,7 @@ export default {
   <div id="casebar">
     <RoleSelector></RoleSelector>
     <span id="maintitle">CaseWhiz Designer</span>
-    <CaseFiler v-if="currentRole === 'designer'"></CaseFiler>
+    <CaseFiler v-if="isDesigner"></CaseFiler>
   </div>
 </template>
 

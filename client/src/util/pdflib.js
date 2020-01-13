@@ -1,15 +1,16 @@
 "use strict";
 
-import pdfjs from "pdfjs-dist/webpack";
-import PDFViewer from "pdfjs-dist/web/pdf_viewer";
+import pdfjsLib from "pdfjs-dist/webpack";
 import store from "../store/index";
-import { 
-  PDFLinkService,
+import {
   PDFPageView,
+  PDFLinkService,
   PDFFindController,
   DefaultAnnotationLayerFactory,
   DefaultTextLayerFactory
-} from "pdfjs-dist/web/pdf_viewer.js";
+} from "pdfjs-dist/web/pdf_viewer";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = "pdfjs/pdf.worker.js";
 
 var currentFile = null;
 var currentPDF = null;
@@ -20,91 +21,7 @@ var DEFAULT_SCALE = 1.0;
 
 var phaseViews = [];
 
-function loadDocument(url) {
-  var loadingTask = pdfjs.getDocument({
-    url: url,
-    cMapUrl: CMAP_URL,
-    cMapPacked: CMAP_PACKED
-  });
-  loadingTask.promise.then(function(doc) {
-    currentPDF = doc;
-    var theCase = JSON.parse(localStorage.getItem(url));
-    if (!theCase) theCase = getNewCase(url, doc.numPages);
-    store.commit("setState", theCase);
-  });
-}
-
-export function loadPhase(phase) {
-  if (phaseViews[phase.id]) return;
-  var view = document.createElement("div");
-  view.id = "viewerContainer";
-  phaseViews[phase.id] = view;
-  currentPDF.getPage(phase.id).then(function(pdfPage) {
-    var pdfPageView = new PDFViewer.PDFPageView({
-      container: phaseViews[phase.id],
-      id: phase.id,
-      scale: DEFAULT_SCALE,
-      defaultViewport: PDFPageView.getViewport({ scale: DEFAULT_SCALE }),
-      linkService: PDFLinkService,
-      findController: PDFFindController,
-      textLayerFactory: DefaultTextLayerFactory(),
-      annotationLayerFactory: DefaultAnnotationLayerFactory(),
-      renderInteractiveForms: true
-    });
-    pdfPageView.setPdfPage(pdfPage);
-    pdfPageView.draw();
-    var pageView = phaseViews[phase.id].getElementsByClassName("page").item(0);
-    // if there are no annotations the annotationLayer will not be added by
-    // pdf.js so add one.
-    var layer = phaseViews[phase.id].getElementsByClassName("annotationLayer")
-      .item[0];
-    if (!layer) {
-      layer = document.createElement("div");
-      layer.className = "annotationLayer";
-      pageView.appendChild(layer);
-    }
-    drawPhaseWidgets(phase);
-  });
-}
-function drawPhaseWidgets(phase) {
-  console.log(phase);
-}
-function getNewCase(file, nphases) {
-  var phases = [];
-  for (var i = 0; i < nphases; i++) {
-    var phase = {
-      id: i,
-      title: "phase " + i,
-      submit: "Submit",
-      widgets: {},
-      tools: []
-    };
-    phases.push(phase);
-  }
-  return {
-    fileName: file,
-    wid: 1,
-    current: {
-      role: "designer",
-      phase: 0,
-      widget: 0,
-      tool: 0
-    },
-    selectedWidgetTypes: [
-      "textfield",
-      "textarea",
-      "select",
-      "carryforward",
-      "media"
-    ],
-    selectedToolTypes: ["Resources", "Comments", "Observations"],
-    phases: phases
-  };
-}
-
-export function saveCase() {
-  localStorage.setItem(store.state.filename, JSON.stringify(store.state));
-}
+export default {};
 
 export function dropHandler(e) {
   e.preventDefault();
@@ -156,6 +73,37 @@ const getFileBlob = function(file, cb) {
   reader.readAsArrayBuffer(file);
 };
 
+export function setDraggable(widgetWrapper) {
+  widgetWrapper.onmousedown = function(e) {
+    var left = widgetWrapper.offsetLeft;
+    var top = widgetWrapper.offsetTop;
+    var width = widgetWrapper.offsetWidth;
+    var height = widgetWrapper.offsetHeight;
+    var offsetX = e.pageX - left;
+    var offsetY = e.pageY - top;
+
+    moveAt(e.pageX, e.pageY);
+
+    function moveAt(pageX, pageY) {
+      widgetWrapper.style.left = pageX - offsetX + "px";
+      widgetWrapper.style.top = pageY - offsetY + "px";
+    }
+
+    window.onmousemove = function(e) {
+      // don't move if resizing
+      if (
+        widgetWrapper.clientWidth == width &&
+        widgetWrapper.clientHeight == height
+      )
+        moveAt(e.pageX, e.pageY);
+    };
+  };
+}
+
+export function saveCase() {
+  localStorage.setItem(store.state.filename, JSON.stringify(store.state));
+}
+
 export function publish(fileName) {
   if (!currentFile) return "No current file to publish.";
   if (fileName.length == 0) "The filename is missing.";
@@ -173,4 +121,92 @@ export function publish(fileName) {
     a.click();
     URL.revokeObjectURL(a.href);
   });
+}
+
+export function showPhase(pindex) {
+  if (currentPDF) {
+    loadPhase(pindex);
+    var wrapper = document.getElementById("viewerWrapper");
+    wrapper.replaceChild(phaseViews[pindex], wrapper.firstElementChild);
+  }
+}
+
+function loadDocument(url) {
+  var loadingTask = pdfjsLib.getDocument({
+    url: url,
+    cMapUrl: CMAP_URL,
+    cMapPacked: CMAP_PACKED
+  });
+  loadingTask.promise.then(function(doc) {
+    currentPDF = doc;
+    let theCase = JSON.parse(localStorage.getItem(url));
+    if (!theCase) theCase = getNewCase(url, doc.numPages);
+    store.commit("setState", theCase);
+  });
+}
+
+function loadPhase(pindex) {
+  if (phaseViews[pindex] || !currentPDF) {
+    return;
+  }
+  let view = document.createElement("div");
+  view.id = "viewerContainer";
+  phaseViews[pindex] = view;
+  currentPDF.getPage(pindex + 1).then(function(pdfPage) {
+    var pdfView = new PDFPageView({
+      container: phaseViews[pindex],
+      id: pindex + 1,
+      scale: DEFAULT_SCALE,
+      defaultViewport: pdfPage.getViewport({ scale: DEFAULT_SCALE }),
+      linkService: PDFLinkService,
+      findController: PDFFindController,
+      textLayerFactory: new DefaultTextLayerFactory(),
+      annotationLayerFactory: new DefaultAnnotationLayerFactory(),
+      renderInteractiveForms: true
+    });
+    pdfView.setPdfPage(pdfPage);
+    pdfView.draw();
+    let pageView = phaseViews[pindex].getElementsByClassName("page").item(0);
+    let layer = document.createElement("div");
+    layer.id = "widgetLayer";
+    pageView.appendChild(layer);
+    drawPhaseWidgets(pindex);
+  });
+}
+
+function drawPhaseWidgets(pindex) {
+  console.log(pindex);
+}
+
+function getNewCase(file, nphases) {
+  var phases = [];
+  for (var i = 0; i < nphases; i++) {
+    var phase = {
+      id: i,
+      title: "phase " + (i + 1),
+      submit: "Submit",
+      widgets: {},
+      tools: []
+    };
+    phases.push(phase);
+  }
+  return {
+    fileName: file,
+    wid: 1,
+    current: {
+      role: "designer",
+      phase: 0,
+      widget: 0,
+      tool: 0
+    },
+    selectedWidgetTypes: [
+      "textfield",
+      "textarea",
+      "select",
+      "carryforward",
+      "media"
+    ],
+    selectedToolTypes: ["Resources", "Comments", "Observations"],
+    phases: phases
+  };
 }

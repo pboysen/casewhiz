@@ -1,20 +1,19 @@
-<script> 
-import DesignerBar from "@/views/designer-bar.vue";
+<script>
+import MainBar from "@/views/main-bar.vue";
 import PhaseViewer from "@/views/phase-viewer.vue";
 import ToolBox from "@/views/tool-box.vue";
 export default {
   name: "CaseWiz",
   components: {
-    DesignerBar,
+    MainBar,
     PhaseViewer,
     ToolBox
   }
 };
 </script>
-
 <template>
   <div id="app">
-    <DesignerBar></DesignerBar>
+    <MainBar></MainBar>
     <div id="main-display>">
       <PhaseViewer></PhaseViewer>
       <ToolBox></ToolBox>

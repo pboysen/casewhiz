@@ -1,8 +1,9 @@
-<script> 
+<script>
 import PropertyDrawer from "@/views/property-drawer.vue";
 import WidgetsBar from "@/views/widgets-bar.vue";
 import ListBar from "@/views/list-bar.vue";
 import { mapGetters } from "vuex";
+import eventBus from "@/main";
 
 export default {
   name: "PhaseViewer",
@@ -20,14 +21,12 @@ export default {
   },
   methods: {
     submit: function() {},
-    setCurrentPhase(phase) {
-      this.$store.commit("setCurrentPhase", phase);
-    },
     handleClick(e) {
-      if (this.menuType === "none") {
+      if (this.menuType === "none" && e.ctrlKey) {
         this.menuType = e.target.textContent === "•" ? "list" : "widget";
-        this.barStyle = " left:" + e.pageX + "px;";
-        this.barStyle += " top:" + e.pageY + "px;";
+        eventBus.$emit("widgetBarMoved", e);
+        this.barStyle = " left:" + (e.pageX - 50) + "px;";
+        this.barStyle += " top:" + (e.pageY - 40) + "px;";
       } else {
         this.menuType = "none";
         this.barStyle = "";
@@ -43,12 +42,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters([
-      "currentPhase",
-      "currentRole",
-      "getPhases",
-      "currentSubmitTitle"
-    ])
+    ...mapGetters(["getPhases", "submitTitle", "currentPhase", "currentRole"])
   }
 };
 </script>
@@ -67,7 +61,7 @@ export default {
         <button
           v-for="(phase, index) in getPhases"
           :key="phase.id"
-          @click="setCurrentPhase(index)"
+          @click="currentPhase = index"
           :class="['phase-button', { active: currentPhase == index }]"
         >
           {{ phase.title }}
@@ -81,8 +75,16 @@ export default {
         />
       </div>
     </div>
-    <div @click="handleClick($event)">
-      <div id="viewerContainer"></div>
+    <PropertyDrawer></PropertyDrawer>
+    <div
+      id="viewerWrapper"
+      @click="handleClick($event)"
+      @drop.stop.prevent
+      @dragover.stop.prevent
+    >
+      <div id="viewerContainer">
+        <div id="widgetLayer"></div>
+      </div>
     </div>
     <div v-if="currentRole === 'designer'">
       <WidgetsBar
@@ -93,10 +95,9 @@ export default {
       </WidgetsBar>
       <ListBar v-if="menuType === 'list'" :barStyle="barStyle" @hide="hide">
       </ListBar>
-      <PropertyDrawer></PropertyDrawer>
     </div>
     <div id="submit-panel">
-      <button @click="submit">{{ currentSubmitTitle }}</button>
+      <button @click="submit">{{ submitTitle }}</button>
     </div>
   </div>
 </template>
@@ -179,14 +180,27 @@ export default {
   cursor: pointer;
   visibility: visible;
 }
+#viewerWrapper {
+  height: 600px;
+  background: white;
+}
 #viewerContainer {
   position: absolute;
-  display: block;
   width: 100%;
-  height: 700px;
+  height: 100%;
+  display: block;
   overflow: auto;
   background-color: white;
 }
+#widgetLayer {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: auto;
+  z-index: 1;
+}
+
 #submit-panel {
   position: relative;
   width: 100%;

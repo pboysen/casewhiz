@@ -1,14 +1,3 @@
-<template> 
-  <div id="roles">
-    <span>Role: </span>
-    <select id="role" @change="setRole($event.target.value)">
-      <option value="designer">Designer</option>
-      <option value="instructor">Instructor</option>
-      <option value="student">Student</option>
-    </select>
-  </div>
-</template>
-
 <script>
 export default {
   name: "RoleSelector",
@@ -19,7 +8,16 @@ export default {
   }
 };
 </script>
-
+<template>
+  <div id="roles">
+    <span>Role: </span>
+    <select id="role" @change="setRole($event.target.value)">
+      <option value="designer">Designer</option>
+      <option value="instructor">Instructor</option>
+      <option value="student">Student</option>
+    </select>
+  </div>
+</template>
 <style lang="scss">
 #roles {
   float: left;

@@ -1,43 +1,67 @@
-<script> 
+<script>
 import PropsMenu from "@/views/props-menu.vue";
 import { mapGetters } from "vuex";
+import eventBus from "@/main";
+
 export default {
   name: "PropertyDrawer",
   components: {
     PropsMenu
   },
-  computed: {
-    ...mapGetters([
-      "currentPhaseTitle",
-      "currentSubmitTitle",
-      "currentTextfieldSize",
-      "selectedWidgets"
-    ])
+  mounted() {
+    eventBus.$on("widgetBarMoved", e => {
+      let drawer = document.getElementById("propertyDrawer");
+      drawer.style.top = e.pageY - 120 + "px";
+    });
   },
   data: function() {
     return {
       isOpen: false
     };
   },
+  computed: {
+    ...mapGetters(["selectedWidgetTypes", "phaseTitle", "submitTitle"]),
+    ...mapGetters("things", ["getWidgets", "textSizes"]),
+    getSize() {
+      var wid = this.$store.getters.currentWidget;
+      if (!wid) return 20;
+      return this.$store.getters.textfieldSize(wid);
+    },
+    isOptional() {
+      if (!wid) return false;
+      var wid = this.$store.getters.currentWidget;
+      return this.$store.getters.optional(wid);
+    }
+  },
   methods: {
     toggleTab() {
       this.isOpen = !this.isOpen;
     },
-    setPhaseTitle(title) {
-      this.$store.commit("setPhaseTitle", title);
+    updatePhaseTitle(e) {
+      this.$store.commit("setPhaseTitle", e.target.value);
     },
-    setSubmitTitle(title) {
-      this.$store.commit("setSubmitTitle", title);
+    updateSubmitTitle(e) {
+      this.$store.commit("setSubmitTitle", e.target.value);
+    },
+    updateSize(e) {
+      this.$store.commit("setTextfieldSize", e.target.value);
+    },
+    updateOptional(e) {
+      this.$store.commit("setOptional", e.target.checked);
     },
     isSelectedWidget(type) {
-      this.$store.getters.selectedWidgetTypes.forEach(name => {
-        if (name === type) return true;
+      let value = false;
+      this.selectedWidgetTypes.forEach(name => {
+        if (name === type) {
+          value = true;
+          return;
+        }
       });
-      return false;
+      return value;
     },
     selectWidgets(e) {
-      var selected = [];
-      var collection = e.originalTarget.selectedOptions;
+      let selected = [];
+      let collection = e.originalTarget.selectedOptions;
       for (let i = 0; i < collection.length; i++)
         selected.push(collection[i].label);
       this.$store.commit("setSelectedWidgetTypes", selected);
@@ -48,21 +72,16 @@ export default {
 
 <template>
   <div class="propertyWrapper">
-    <div :class="['propertyDrawer', { opened: isOpen }]">
-      <div v-on:click="toggleTab" class="tab">
-        <span :class="{ rotate: isOpen }">
-          <img src="@/assets/img/triangle.png" />
-        </span>
-      </div>
-      <div class="propertyPanel">
+    <div id="propertyDrawer" :class="['propertyDrawer', { opened: isOpen }]">
+      <div class="propertyPanel" id="propertyPanel">
         <PropsMenu title="Phase">
           <label for="Phase_PhaseTitle">
             Phase Title:
             <input
               id="Phase_PhaseTitle"
               type="text"
-              :value="currentPhaseTitle"
-              @keyup="setPhaseTitle($event.target.value)"
+              :value="phaseTitle"
+              @input="updatePhaseTitle"
             />
           </label>
           <label for="Phase_SubmitTitle">
@@ -70,23 +89,31 @@ export default {
             <input
               id="Phase_SubmitTitle"
               type="text"
-              :value="currentSubmitTitle"
-              @keyup="setSubmitTitle($event.target.value)"
+              :value="submitTitle"
+              @input="updateSubmitTitle"
             />
           </label>
         </PropsMenu>
         <PropsMenu title="Textfield">
           <label for="Props_Textfield">
             Size (in characters):
-            <input
-              id="Props_Textfield"
-              type="text"
-              style="text-align:right; width: 2em"
-              :value="currentTextfieldSize"
-            />
+            <select id="Props_Textfield" :value="getSize" @change="updateSize">
+              <option
+                v-for="(size, index) in textSizes"
+                :value="size"
+                :key="index"
+              >
+                {{ size }}
+              </option>
+            </select>
           </label>
           <label for="textfieldopt">
-            <input id="textfieldopt" type="checkbox" value="textfieldOpt" />
+            <input
+              id="textfieldopt"
+              type="checkbox"
+              :checked="isOptional ? 'checked' : ''"
+              @change="updateOptional"
+            />
             Optional
           </label>
         </PropsMenu>
@@ -134,7 +161,7 @@ export default {
               @change="selectWidgets"
             >
               <option
-                v-for="w in selectedWidgets"
+                v-for="w in getWidgets"
                 :value="w.type"
                 :key="w.type"
                 :selected="isSelectedWidget(w.type)"
@@ -145,6 +172,11 @@ export default {
           </label>
         </PropsMenu>
       </div>
+      <div v-on:click="toggleTab" class="tab" id="drawerTab">
+        <span :class="{ rotate: isOpen }">
+          <img src="@/assets/img/triangle.png" />
+        </span>
+      </div>
     </div>
   </div>
 </template>
@@ -152,45 +184,43 @@ export default {
 <style lang="scss" scoped>
 .propertyWrapper {
   position: relative;
+  z-index: 2;
 }
 .propertyDrawer {
   position: absolute;
-  height: 700px;
   width: 170px;
-  top: 0px;
-  right: -154px;
+  top: 50px;
+  left: -170px;
   padding: 0;
   transition: all 0.5s ease;
 }
 .tab {
-  border-radius: 4px;
-  border: 1px solid black;
-  width: 24px;
+  position: relative;
+  left: 170px;
+  border: 1px solid grey;
+  border-radius: 0 4px 4px 0;
+  width: 20px;
   height: 20px;
   cursor: pointer;
-  position: relative;
-  left: -4px;
-  font-size: 14px;
-  top: 25%;
+  top: 50px;
   background-color: lightblue;
   img {
     padding: 4px;
-    transform: rotate(-90deg);
+    transform: rotate(90deg);
     transition-duration: 0.5s;
   }
 }
 .opened {
-  right: 0px;
+  left: -16px;
 }
 .rotate img {
-  transform: rotate(90deg);
+  transform: rotate(-90deg);
   transition-duration: 0.5s;
 }
 .propertyPanel {
   position: absolute;
-  height: 85%;
   width: 85%;
-  border-radius: 8px 0px 0 8px;
+  border-radius: 0 8px 8px 0;
   left: 16px;
   top: 0px;
   overflow: auto;
@@ -198,5 +228,11 @@ export default {
   background-color: #eeeefe;
   padding: 4px;
   font-size: 12px;
+}
+.propertyPanel {
+  select {
+    border: 1px solid gray;
+    border-radius: 0;
+  }
 }
 </style>

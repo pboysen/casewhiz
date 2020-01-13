@@ -25,11 +25,13 @@ export default {
     getSize() {
       var wid = this.$store.getters.currentWidget;
       if (!wid) return 20;
+      console.log(wid);
       return this.$store.getters.textfieldSize(wid);
     },
     isOptional() {
       if (!wid) return false;
       var wid = this.$store.getters.currentWidget;
+      console.log(wid, this.$store.getters.currentWidget);
       return this.$store.getters.optional(wid);
     }
   },

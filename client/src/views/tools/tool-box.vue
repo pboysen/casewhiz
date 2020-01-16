@@ -60,7 +60,7 @@ export default {
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 #tool-box {
   position: absolute;
   display: inline-block;
@@ -68,14 +68,13 @@ export default {
   width: 30%;
   height: 685px;
   padding-bottom: 6px;
-  border-color: lightgray;
-  border-left: 1px solid gray;
-  border-bottom: 1px solid gray;
-  background-color: lightblue;
+  background-color: $bg-color;
 }
-#toolbar {
+#tool-bar {
   display: block;
-  padding: 4px;
+  padding: 2px;
+  height: 24px;
+  border-bottom: 1px solid gray;
 }
 #tool-panel {
   position: absolute;
@@ -90,20 +89,20 @@ export default {
 }
 .tool-button {
   cursor: pointer;
-  font-size: 14px;
-  font-weight: bold;
-  border: 0px;
+  font-size: $txt-font;
+  border: 0;
   padding: 2px;
   margin: 0px 5px 0 5px;
   display: inline-block;
   height: 24px;
-  background-color: lightblue;
+  color: $txt-color;
+  background-color: $bg-color;
 }
 .tool-button:hover {
-  background-color: #e6bbad;
+  color: $select-color;
 }
 .active {
-  color: white;
+  color: $select-color;
 }
 #left-tool {
   position: relative;
@@ -141,12 +140,12 @@ export default {
 }
 .tooldiv {
   position: relative;
-  top: 28px;
+  top: 0px;
   display: block;
   width: 100%;
   height: 640px;
   background-color: white;
   padding: 4px;
-  border-top: 1px solid gray;
+  border-left: 1px solid gray;
 }
 </style>

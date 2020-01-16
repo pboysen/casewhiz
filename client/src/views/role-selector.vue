@@ -23,6 +23,7 @@ export default {
   float: left;
   margin-left: 10px;
   span {
+    font-size: 12px;
     font-weight: bold;
   }
 }
@@ -32,5 +33,8 @@ export default {
   border-radius: 5px;
   height: 25px;
   cursor: pointer;
+}
+#role select {
+  border-radius: 4px;
 }
 </style>

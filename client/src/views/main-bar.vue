@@ -23,18 +23,17 @@ export default {
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 #casebar {
   width: 100%;
-  height: 32px;
+  height: 24px;
   text-align: center;
-  padding: 5px;
-  color: white;
+  padding: 6px;
+  color: $fancy-color;
   display: block;
-  border-bottom: 1px solid gray;
 }
 #maintitle {
-  font-family: cursive;
+  font-family: "Parisienne", arial, helvetica;
   font-weight: bold;
   font-size: 24px;
 }

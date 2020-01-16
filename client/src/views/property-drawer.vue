@@ -20,19 +20,33 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["selectedWidgetTypes", "phaseTitle", "submitTitle"]),
+    ...mapGetters([
+      "selectedWidgetTypes",
+      "phaseTitle",
+      "submitTitle",
+      "currentWidget"
+    ]),
     ...mapGetters("things", ["getWidgets", "textSizes"]),
-    getSize() {
-      var wid = this.$store.getters.currentWidget;
-      if (!wid) return 20;
-      console.log(wid);
-      return this.$store.getters.textfieldSize(wid);
+    wid() {
+      return this.$store.getters.currentWidget;
     },
-    isOptional() {
-      if (!wid) return false;
-      var wid = this.$store.getters.currentWidget;
-      console.log(wid, this.$store.getters.currentWidget);
-      return this.$store.getters.optional(wid);
+    size() {
+      return this.$store.getters.size(this.wid);
+    },
+    optional() {
+      return this.$store.getters.optional(this.wid);
+    },
+    options() {
+      return this.$store.getters.options(this.wid);
+    },
+    multiple() {
+      return this.$store.getters.multiple(this.wid);
+    },
+    sources() {
+      return this.$store.getters.sources(this.wid);
+    },
+    url() {
+      return this.$store.getters.url(this.wid);
     }
   },
   methods: {
@@ -46,10 +60,22 @@ export default {
       this.$store.commit("setSubmitTitle", e.target.value);
     },
     updateSize(e) {
-      this.$store.commit("setTextfieldSize", e.target.value);
+      this.$store.commit("setSize", e.target.value);
     },
     updateOptional(e) {
       this.$store.commit("setOptional", e.target.checked);
+    },
+    updateOptions(e) {
+      this.$store.commit("setOptions", e.target.value);
+    },
+    updateMultiple(e) {
+      this.$store.commit("setMultiple", e.target.value);
+    },
+    updateSources(e) {
+      this.$store.commit("setSources", e.target.value);
+    },
+    updateURL(e) {
+      this.$store.commit("setURL", e.target.value);
     },
     isSelectedWidget(type) {
       let value = false;
@@ -79,6 +105,7 @@ export default {
         <PropsMenu title="Phase">
           <label for="Phase_PhaseTitle">
             Phase Title:
+            <br />
             <input
               id="Phase_PhaseTitle"
               type="text"
@@ -88,6 +115,7 @@ export default {
           </label>
           <label for="Phase_SubmitTitle">
             Submit Title:
+            <br />
             <input
               id="Phase_SubmitTitle"
               type="text"
@@ -99,7 +127,8 @@ export default {
         <PropsMenu title="Textfield">
           <label for="Props_Textfield">
             Size (in characters):
-            <select id="Props_Textfield" :value="getSize" @change="updateSize">
+            <br />
+            <select id="Props_Textfield" :value="size" @change="updateSize">
               <option
                 v-for="(size, index) in textSizes"
                 :value="size"
@@ -113,49 +142,116 @@ export default {
             <input
               id="textfieldopt"
               type="checkbox"
-              :checked="isOptional ? 'checked' : ''"
+              :checked="optional"
               @change="updateOptional"
             />
             Optional
           </label>
         </PropsMenu>
         <PropsMenu title="Textarea">
-          Select Sources:
-          <select id="CarryForwardArea" multiple="multiple" size="4"></select>
+          <label for="CFTextarea">
+            Carryforward Sources:
+            <br />
+            <select id="CFTextarea" multiple="multiple" size="4">
+              <option
+                v-for="(source, index) in sources"
+                :value="source"
+                :key="index"
+              >
+                {{ source }}
+              </option>
+            </select>
+          </label>
+          <label for="CF_TextareaOrder">
+            Order:
+            <br />
+            <input
+              type="text"
+              :value="sources"
+              id="CF_TextareaOrder"
+              cols="30"
+              readonly="readonly"
+            />
+          </label>
           <label for="textareaopt">
-            <input id="textareaopt" type="checkbox" value="textareaOpt" />
+            <input
+              id="textareaopt"
+              type="checkbox"
+              :checked="optional"
+              @change="updateOptional"
+            />
             Optional
           </label>
         </PropsMenu>
         <PropsMenu title="Select">
           <label for="Props_Select">
-            Options<br />
-            (separated by ';'):
-            <input id="Props_Select" type="text" value="" />
+            Options:
+            <br />
+            <input
+              id="Props_Select"
+              type="text"
+              :value="options"
+              @input="updateOptions"
+              placeholder="Names separated by ';'."
+            />
+          </label>
+          <label for="selectsize">
+            Size(visible rows):
+            <br />
+            <input
+              id="selectsize"
+              type="text"
+              :value="size"
+              @input="updateSize"
+            />
           </label>
           <label for="selectopt">
-            <input id="selectopt" type="checkbox" value="textfieldOpt" />
+            <input
+              id="selectopt"
+              type="checkbox"
+              :checked="optional"
+              @change="updateOptional"
+            />
             Optional
           </label>
         </PropsMenu>
         <PropsMenu title="CarryForward">
-          <label for="CF_Select">
-            <select class="cfSources" multiple="multiple" size="4"></select>
+          <label for="CF_Src">
+            Carryforward Sources:
+            <br />
+            <select id="CF_Src" multiple="multiple" size="4">
+              <option
+                v-for="(source, index) in sources"
+                :value="source"
+                :key="index"
+              >
+                {{ source }}
+              </option>
+            </select>
           </label>
           <label for="CF_Order">
             Order:
-            <input type="text" id="cfOrder" cols="30" readonly="readonly" />
+            <br />
+            <input
+              type="text"
+              :value="sources"
+              id="cfOrder"
+              cols="30"
+              readonly="readonly"
+            />
           </label>
         </PropsMenu>
         <PropsMenu title="Media">
           <label for="Media_URL">
             URL:
-            <input id="Media_URL" type="text" value="" />
+            <br />
+            <input id="Media_URL" type="text" value="url" @input="updateURL" />
           </label>
         </PropsMenu>
         <PropsMenu title="Widgets">
           <label for="Props_Select">
             Select:
+            <br />
             <select
               id="Props_Select"
               multiple="multiple"
@@ -183,7 +279,7 @@ export default {
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .propertyWrapper {
   position: relative;
   z-index: 2;
@@ -205,7 +301,7 @@ export default {
   height: 20px;
   cursor: pointer;
   top: 50px;
-  background-color: lightblue;
+  background-color: $bg-color;
   img {
     padding: 4px;
     transform: rotate(90deg);
@@ -227,14 +323,16 @@ export default {
   top: 0px;
   overflow: auto;
   border: 1px solid black;
-  background-color: #eeeefe;
   padding: 4px;
   font-size: 12px;
 }
-.propertyPanel {
-  select {
-    border: 1px solid gray;
-    border-radius: 0;
-  }
+.propertyPanel input[type="text"] {
+  width: 100px;
+}
+.propertyPanel select {
+  border: 1px solid gray;
+  width: 100px;
+  border-radius: 0;
+  overflow: none;
 }
 </style>

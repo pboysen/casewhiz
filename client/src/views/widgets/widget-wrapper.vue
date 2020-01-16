@@ -42,7 +42,7 @@ export default {
     isSelected() {
       return this.$store.getters.currentWidget == this.$parent.wid;
     },
-    isOptional() {
+    optional() {
       return this.$store.getters.optional(this.$parent.wid);
     }
   }
@@ -51,32 +51,30 @@ export default {
 <template>
   <div
     v-if="isActive"
-    :class="['widget', { selected: isSelected }]"
+    class="widget"
     wid=""
     @mousedown="startDrag"
     @mouseup="stopDrag"
     @click="copyDelete"
   >
     <slot></slot>
-    <span class="optional" v-show="isOptional">*optional</span>
+    <span class="optional" v-show="optional">*optional</span>
   </div>
 </template>
 <style lang="scss">
 .widget {
+  box-sizing: border-box;
   position: absolute;
   cursor: pointer;
   padding: 0;
   margin: 0;
 }
-.widget.selected {
-  border-top: 1px solid red;
-}
 .widget::before {
   font-size: 10px;
   content: attr(wid);
-  position: relative;
-  top: -6px;
-  left: 12px;
+  position: absolute;
+  top: 2px;
+  left: 2px;
 }
 .widget:hover::after {
   position: absolute;
@@ -91,10 +89,17 @@ export default {
   position: relative;
   left: 10px;
   top: 0px;
+  margin: 0;
 }
 
-.widget[widgettype="radio"],
-.widget[widgettype="checkbox"] {
+.selectimg {
+  position: relative;
+  left: 8px;
+  top: 0px;
+  float: left;
+  transform: rotate(-90deg);
+}
+.widget[widgettype="radio"] {
   position: absolute;
 }
 .widget[widgettype="radio"]:hover,
@@ -102,16 +107,6 @@ export default {
   background-image: none;
 }
 
-.widget[widgettype="textfield"] {
-}
-.widget[widgettype="textarea"] {
-  rows: 4;
-  cols: 50;
-  overflow: auto;
-}
-.widget[widgettype="select"] select {
-  pointer-events: none;
-}
 .widget[widgettype="carryforward"] {
   background-color: white;
 }

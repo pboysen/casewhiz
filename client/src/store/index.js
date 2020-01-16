@@ -14,7 +14,7 @@ const store = new Vuex.Store({
   },
   state: {
     filename: "test.pdf",
-    wcnt: 0,
+    wcnt: 1,
     role: "designer",
     phase: 0,
     tool: 0,
@@ -100,11 +100,38 @@ const store = new Vuex.Store({
     submitTitle: state => {
       return state.phases[state.phase].submit;
     },
-    textfieldSize: state => wid => {
+    size: state => wid => {
+      if (!wid) return 20;
       return state.phases[state.phase].widgets[wid].props.size;
     },
     optional: state => wid => {
+      if (!wid) return false;
       return state.phases[state.phase].widgets[wid].props.optional;
+    },
+    options: state => wid => {
+      if (!wid) return false;
+      return state.phases[state.phase].widgets[wid].props.options;
+    },
+    multiple: state => wid => {
+      if (!wid) return false;
+      return state.phases[state.phase].widgets[wid].props.multiple;
+    },
+    sources: state => wid => {
+      if (!wid) return false;
+      return state.phases[state.phase].widgets[wid].props.sources;
+    },
+    src: state => wid => {
+      if (!wid) return false;
+      return state.phases[state.phase].widgets[wid].props.src;
+    },
+    target: state => wid => {
+      if (!wid) return false;
+      var sources = state.phases[state.phase].widgets[wid].props.sources;
+      var target = "";
+      sources.forEach(txt => {
+        target += "<p>" + txt + "</p>";
+      });
+      return target;
     }
   },
   mutations: {
@@ -134,14 +161,23 @@ const store = new Vuex.Store({
     setSubmitTitle(state, title) {
       state.phases[state.phase].submit = title;
     },
-    setTextfieldSize(state, size) {
+    setSize(state, size) {
       state.phases[state.phase].widgets[state.widget].props.size = size;
     },
     setOptional(state, optional) {
       state.phases[state.phase].widgets[state.widget].props.optional = optional;
     },
-    setCurrentPhaseTools(state, tools) {
-      state.phases[state.phase].tools = tools;
+    setOptions(state, options) {
+      state.phases[state.phase].widgets[state.widget].props.options = options;
+    },
+    setMultiple(state, multiple) {
+      state.phases[state.phase].widgets[state.widget].props.multiple = multiple;
+    },
+    setSources(state, sources) {
+      state.phases[state.phase].widgets[state.widget].props.sources = sources;
+    },
+    setSrc(state, src) {
+      state.phases[state.phase].widgets[state.widget].props.src = src;
     },
     setSelectedWidgetTypes(state, selected) {
       state.selectedWidgetTypes = selected;
@@ -182,6 +218,7 @@ const store = new Vuex.Store({
 });
 
 const makeWidget = function(state, info) {
+  store.commit("setCurrentWidget", info.wid);
   var settings = things.getters.getWidgetSettings(things.state, info);
   var wdata = { wid: info.wid };
   var widget = new settings.constructor({ wdata, store });
@@ -189,10 +226,9 @@ const makeWidget = function(state, info) {
   var el = widget.$el;
   document.getElementById("widgetLayer").appendChild(el);
   el.setAttribute("wid", info.wid);
-  el.style.left = info.event.pageX + 30 + "px";
+  el.style.left = info.event.pageX + 40 + "px";
   el.style.top = info.event.pageY - 50 + "px";
   if (settings.isDraggable) setDraggable(el);
-  store.commit("setCurrentWidget", info.wid);
 };
 
 /*

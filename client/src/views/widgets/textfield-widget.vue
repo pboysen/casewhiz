@@ -1,7 +1,7 @@
 <script>
 import WidgetWrapper from "@/views/widgets/widget-wrapper.vue";
 export default {
-  name: "textfield",
+  name: "TextfieldWidget",
   data: function() {
     return {
       wid: this.$options.wdata.wid
@@ -11,15 +11,15 @@ export default {
     WidgetWrapper
   },
   computed: {
-    getSize() {
-      return this.$store.getters.textfieldSize(this.wid);
+    size() {
+      return this.$store.getters.size(this.wid);
     }
   }
 };
 </script>
 <template>
   <WidgetWrapper widgettype="textfield">
-    <input type="text" :size="getSize" class="textfield" />
+    <input type="text" :size="size" class="textfield" />
   </WidgetWrapper>
 </template>
 <style lang="scss">

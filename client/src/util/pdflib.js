@@ -90,10 +90,10 @@ export function setDraggable(widgetWrapper) {
     }
 
     window.onmousemove = function(e) {
-      // don't move if resizing
+      // move if not resizing
       if (
-        widgetWrapper.clientWidth == width &&
-        widgetWrapper.clientHeight == height
+        widgetWrapper.offsetWidth == width &&
+        widgetWrapper.offsetHeight == height
       )
         moveAt(e.pageX, e.pageY);
     };

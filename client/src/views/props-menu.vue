@@ -44,8 +44,10 @@ export default {
       v-on:before-leave="beforeLeave"
       v-on:leave="leave"
     >
-      <div v-show="isOpen" class="PropsBody">
-        <slot></slot>
+      <div v-show="isOpen">
+        <div class="PropsBody">
+          <slot></slot>
+        </div>
       </div>
     </transition>
   </div>
@@ -56,6 +58,7 @@ export default {
   width: 100%;
   margin-bottom: 2px;
   border-radius: 6px;
+  overflow: none;
 }
 .accordion .PropsHeader {
   height: 16px;
@@ -65,7 +68,7 @@ export default {
   position: relative;
   color: black;
   font-size: 12px;
-  background-color: lightblue;
+  background-color: $bg-color;
   cursor: pointer;
 }
 .PropsHeader-icon {
@@ -85,9 +88,9 @@ export default {
 .PropsBody {
   input[type="text"] {
     padding: 2px;
-    font-size: 12px;
-    height: 12px;
-    width: 130px;
+    font-size: $txt-font;
+    height: 14px;
+    width: 140px;
     border: 1px solid black;
     margin-bottom: 4px;
   }

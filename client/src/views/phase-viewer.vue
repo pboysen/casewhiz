@@ -1,6 +1,6 @@
 <script>
 import PropertyDrawer from "@/views/property-drawer.vue";
-import WidgetsBar from "@/views/widgets-bar.vue";
+import WidgetsBar from "@/views/widgets/widgets-bar.vue";
 import ListBar from "@/views/list-bar.vue";
 import { mapGetters } from "vuex";
 import eventBus from "@/main";
@@ -39,6 +39,13 @@ export default {
       const panel = document.getElementById("phase-panel");
       this.left += dx;
       panel.style.left = this.left + "px";
+      /*
+      for (let i = 0; i < panel.childNodes.length; i++)
+        console.log(panel.childNodes[i].getBoundingClientRect());
+      */
+    },
+    setCurrentPhase(phase) {
+      this.$store.commit("setCurrentPhase", phase);
     }
   },
   computed: {
@@ -61,7 +68,8 @@ export default {
         <button
           v-for="(phase, index) in getPhases"
           :key="phase.id"
-          @click="currentPhase = index"
+          :id="phase.id"
+          @click="setCurrentPhase(index)"
           :class="['phase-button', { active: currentPhase == index }]"
         >
           {{ phase.title }}
@@ -109,14 +117,13 @@ export default {
   width: 70%;
   height: 100%;
   padding: 0px;
-  background-color: #eeeefe;
 }
 #phase-bar {
   display: block;
   width: 100%;
   height: 24px;
   vertical-align: middle;
-  background-color: lightblue;
+  background-color: $bg-color;
   padding: 2px 10px 2px 0;
   overflow: none;
   border-bottom: 1px solid gray;
@@ -131,22 +138,22 @@ export default {
   min-width: 20px;
   font-size: 14px;
   padding: 4px 0px 0 4px;
-  color: black;
-  background-color: lightblue;
+  color: $txt-color;
   border: 0;
+  background-color: $bg-color;
   margin: 0px 0px 0 20px;
   cursor: pointer;
 }
 .phase-button:hover {
-  background-color: #e6bbad;
+  color: $select-color;
 }
 .active {
-  color: #fff;
+  color: $select-color;
 }
 .left-phase {
   position: relative;
   float: left;
-  background-color: lightblue;
+  background-color: $bg-color;
   width: 24px;
   height: 100%;
   display: flex;
@@ -161,7 +168,7 @@ export default {
 .right-phase {
   position: relative;
   float: right;
-  background-color: lightblue;
+  background-color: $bg-color;
   width: 24px;
   height: 100%;
   display: flex;
@@ -208,7 +215,7 @@ export default {
   top: 630px;
   display: block;
   text-align: center;
-  background-color: lightblue;
+  background-color: $bg-color;
   border: 1px solid gray;
 }
 #submit-panel button {
@@ -216,8 +223,9 @@ export default {
   margin: 4px;
   background-color: white;
   cursor: pointer;
+  visibility: visible;
 }
 #submit-panel button:hover {
-  background-color: #e6bbad;
+  color: $select-color;
 }
 </style>

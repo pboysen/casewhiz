@@ -40,7 +40,7 @@ export default {
   overflow-x: visible;
   border-radius: 5px;
   border: 1px solid gray;
-  background-color: lightblue;
+  background-color: $bg-color;
   z-index: 10;
 }
 .widgetOption {

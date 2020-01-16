@@ -36,6 +36,15 @@ export default {
         err.innerHTML = msg;
         err.style.display = "block";
       }
+    },
+    toggle(option) {
+      if (option === "import") {
+        this.showImport = !this.showImport;
+        this.showPublish = false;
+      } else {
+        this.showPublish = !this.showPublish;
+        this.showImport = false;
+      }
     }
   }
 };
@@ -43,20 +52,22 @@ export default {
 
 <template>
   <div id="files">
-    <button @click="showImport = !showImport">Import</button>
-    <button @click="showPublish = !showPublish">Publish</button>
-    <div id="import" v-if="showImport">
+    <button @click="toggle('import')">Import</button>
+    <button @click="toggle('export')">Publish</button>
+    <div id="import" v-if="this.showImport">
       <div id="drop_zone" @drop.stop.prevent="dropHandler" @dragover.prevent>
-        Drop your PDF or CASE file here.<br />
-        Click Import again to cancel.
+        <p>
+          Drop your PDF or CASE file here.<br />
+          Click <em>Import</em> again to cancel.
+        </p>
       </div>
       <div class="error" id="droperror"></div>
     </div>
-    <div id="export" v-if="showPublish">
+    <div id="export" v-if="this.showPublish">
       <br />
       <p>
         Enter the name of the file to save. It will be saved as a .case file.
-        Click Publish again to cancel.
+        Click <em>Publish</em> again to cancel.
       </p>
       <p>
         <input
@@ -80,25 +91,32 @@ export default {
   float: right;
   margin-right: 20px;
 }
+#files button {
+  font-size: 12px;
+}
+#files button:hover {
+  color: $select-color;
+}
 #import {
-  font-size: 14px;
   position: absolute;
   width: 600px;
   height: 300px;
   color: black;
-  background-color: lightblue;
+  font-size: $txt-font;
+  background-color: $bg-color;
   top: 120px;
   left: 50px;
   padding: 10px;
   z-index: 5;
 }
 #export {
-  font-size: 14px;
   position: absolute;
   width: 300px;
   height: 200px;
   color: black;
-  background-color: lightblue;
+  border: 1px solid gray;
+  font-size: $txt-font;
+  background-color: $bg-color;
   top: 120px;
   left: 250px;
   padding: 10px;
@@ -107,8 +125,9 @@ export default {
 }
 #drop_zone {
   font-size: 12px;
-  border: 2px dashed lightblue;
-  color: gray;
+  border: 1px solid gray;
+  color: black;
+  font-size: $txt-font;
   background-color: white;
   width: 100%;
   height: 80%;
@@ -119,6 +138,7 @@ export default {
   border: 1px solid gray;
   padding: 2px;
   margin: 4px;
+  font-size: $txt-font;
   display: none;
   background: yellow;
   color: black;

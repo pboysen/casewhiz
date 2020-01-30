@@ -1,7 +1,7 @@
 <script>
 import WidgetWrapper from "@/views/widgets/widget-wrapper.vue";
 export default {
-  name: "CarryforwardWidget",
+  name: "Carryforward",
   data: function() {
     return {
       wid: this.$options.wdata.wid
@@ -11,16 +11,8 @@ export default {
     WidgetWrapper
   },
   computed: {
-    sources() {
-      return this.$store.getters.sources(this.wid);
-    },
-    target() {
-      return this.$store.getters.target(this.wid);
-    }
-  },
-  methods: {
-    updateSources(sources) {
-      this.$store.commit("updatSources", sources);
+    carryforward() {
+      return this.$store.getters.carryforward(this.wid);
     }
   }
 };
@@ -28,7 +20,7 @@ export default {
 <template>
   <WidgetWrapper widgettype="select">
     <div class="carryforward">
-      {{ target }}
+      {{ carryforward }}
     </div>
   </WidgetWrapper>
 </template>

@@ -3,11 +3,17 @@ import { mapGetters } from "vuex";
 
 export default {
   name: "WidgetsBar",
-  props: ["barStyle"],
+  props: ["layer", "barStyle"],
   methods: {
-    makeWidget: function(type, event) {
+    addWidget: function(type, event) {
       this.$emit("hide");
-      this.$store.commit("addWidget", { wid: null, type: type, event: event });
+      var info = {
+        wid: null,
+        type: type,
+        layer: this.layer,
+        event: event
+      };
+      this.$store.commit("addWidget", info);
     }
   },
   computed: {
@@ -24,7 +30,7 @@ export default {
       :src="require(`@/assets/img/${widget.src}`)"
       :key="widget.type"
       :title="widget.type"
-      @click="makeWidget(widget.type, $event)"
+      @click="addWidget(widget.type, $event)"
     />
   </div>
 </template>

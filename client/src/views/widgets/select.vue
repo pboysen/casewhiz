@@ -1,7 +1,7 @@
 <script>
 import WidgetWrapper from "@/views/widgets/widget-wrapper.vue";
 export default {
-  name: "TextfieldWidget",
+  name: "Select",
   data: function() {
     return {
       wid: this.$options.wdata.wid
@@ -11,6 +11,9 @@ export default {
     WidgetWrapper
   },
   computed: {
+    options() {
+      return this.$store.getters.options(this.wid).split(";");
+    },
     size() {
       return this.$store.getters.size(this.wid);
     }
@@ -18,14 +21,19 @@ export default {
 };
 </script>
 <template>
-  <WidgetWrapper widgettype="textfield">
-    <input type="text" :size="size" class="textfield" />
+  <WidgetWrapper widgettype="select">
+    <select class="select" :size="size">
+      <option v-for="option in options" :key="option" :value="option">
+        {{ option }}
+      </option>
+    </select>
   </WidgetWrapper>
 </template>
+
 <style lang="scss">
-.textfield {
-  cursor: default;
-  pointer-events: none;
+.widget[widgettype="select"] select {
+  min-width: 50px;
   border-radius: 0;
+  cursor: default;
 }
 </style>

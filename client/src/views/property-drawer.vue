@@ -13,10 +13,13 @@ export default {
       let drawer = document.getElementById("propertyDrawer");
       drawer.style.top = e.pageY - 120 + "px";
     });
+    eventBus.$on("typeSelected", type => (this.openType = type));
+    eventBus.$on("typeDeselected", () => (this.openType = ""));
   },
   data: function() {
     return {
-      isOpen: false
+      isOpen: false,
+      openType: ""
     };
   },
   computed: {
@@ -26,56 +29,43 @@ export default {
       "submitTitle",
       "currentWidget"
     ]),
-    ...mapGetters("things", ["getWidgets", "textSizes"]),
-    wid() {
-      return this.$store.getters.currentWidget;
-    },
+    ...mapGetters("things", ["getWidgets", "sizes"]),
     size() {
+      if (!this.wid) return 20;
       return this.$store.getters.size(this.wid);
     },
     optional() {
+      if (!this.wid) return false;
       return this.$store.getters.optional(this.wid);
     },
-    options() {
-      return this.$store.getters.options(this.wid);
-    },
-    multiple() {
-      return this.$store.getters.multiple(this.wid);
-    },
     sources() {
+      if (!this.wid) return [];
       return this.$store.getters.sources(this.wid);
     },
     url() {
+      if (!this.wid) return "";
       return this.$store.getters.url(this.wid);
+    },
+    options() {
+      if (!this.wid) return [];
+      return this.$store.getters.options(this.wid);
+    },
+    wid() {
+      return this.$store.getters.currentWidget;
     }
   },
   methods: {
     toggleTab() {
       this.isOpen = !this.isOpen;
     },
-    updatePhaseTitle(e) {
+    setPhaseTitle(e) {
       this.$store.commit("setPhaseTitle", e.target.value);
     },
-    updateSubmitTitle(e) {
+    setSubmitTitle(e) {
       this.$store.commit("setSubmitTitle", e.target.value);
     },
-    updateSize(e) {
-      this.$store.commit("setSize", e.target.value);
-    },
-    updateOptional(e) {
-      this.$store.commit("setOptional", e.target.checked);
-    },
-    updateOptions(e) {
-      this.$store.commit("setOptions", e.target.value);
-    },
-    updateMultiple(e) {
-      this.$store.commit("setMultiple", e.target.value);
-    },
-    updateSources(e) {
-      this.$store.commit("setSources", e.target.value);
-    },
-    updateURL(e) {
-      this.$store.commit("setURL", e.target.value);
+    setProp(prop, value) {
+      this.$store.commit("setProp", { prop: prop, value: value });
     },
     isSelectedWidget(type) {
       let value = false;
@@ -99,10 +89,10 @@ export default {
 </script>
 
 <template>
-  <div class="propertyWrapper">
+  <div id="propertyWrapper">
     <div id="propertyDrawer" :class="['propertyDrawer', { opened: isOpen }]">
-      <div class="propertyPanel" id="propertyPanel">
-        <PropsMenu title="Phase">
+      <div id="propertyPanel">
+        <PropsMenu title="Phase" :openType="openType">
           <label for="Phase_PhaseTitle">
             Phase Title:
             <br />
@@ -110,7 +100,7 @@ export default {
               id="Phase_PhaseTitle"
               type="text"
               :value="phaseTitle"
-              @input="updatePhaseTitle"
+              @input="setPhaseTitle"
             />
           </label>
           <label for="Phase_SubmitTitle">
@@ -120,20 +110,20 @@ export default {
               id="Phase_SubmitTitle"
               type="text"
               :value="submitTitle"
-              @input="updateSubmitTitle"
+              @input="setSubmitTitle"
             />
           </label>
         </PropsMenu>
-        <PropsMenu title="Textfield">
+        <PropsMenu title="Textfield" :openType="openType">
           <label for="Props_Textfield">
             Size (in characters):
             <br />
-            <select id="Props_Textfield" :value="size" @change="updateSize">
-              <option
-                v-for="(size, index) in textSizes"
-                :value="size"
-                :key="index"
-              >
+            <select
+              id="Props_Textfield"
+              :value="size"
+              @change="setProp('size', $event.target.value)"
+            >
+              <option v-for="(size, index) in sizes" :value="size" :key="index">
                 {{ size }}
               </option>
             </select>
@@ -143,16 +133,16 @@ export default {
               id="textfieldopt"
               type="checkbox"
               :checked="optional"
-              @change="updateOptional"
+              @change="setProp('optional', $event.target.checked)"
             />
             Optional
           </label>
         </PropsMenu>
-        <PropsMenu title="Textarea">
+        <PropsMenu title="Textarea" :openType="openType">
           <label for="CFTextarea">
             Carryforward Sources:
             <br />
-            <select id="CFTextarea" multiple="multiple" size="4">
+            <select id="CFTextarea" multiple size="4">
               <option
                 v-for="(source, index) in sources"
                 :value="source"
@@ -178,12 +168,12 @@ export default {
               id="textareaopt"
               type="checkbox"
               :checked="optional"
-              @change="updateOptional"
+              @change="setProp('optional', $event.target.checked)"
             />
             Optional
           </label>
         </PropsMenu>
-        <PropsMenu title="Select">
+        <PropsMenu title="Select" :openType="openType">
           <label for="Props_Select">
             Options:
             <br />
@@ -191,7 +181,7 @@ export default {
               id="Props_Select"
               type="text"
               :value="options"
-              @input="updateOptions"
+              @input="setProp('options', $event.target.value)"
               placeholder="Names separated by ';'."
             />
           </label>
@@ -202,7 +192,7 @@ export default {
               id="selectsize"
               type="text"
               :value="size"
-              @input="updateSize"
+              @input="setProp('size', $event.target.value)"
             />
           </label>
           <label for="selectopt">
@@ -210,12 +200,12 @@ export default {
               id="selectopt"
               type="checkbox"
               :checked="optional"
-              @change="updateOptional"
+              @change="setProp('optional', e.target.checked)"
             />
             Optional
           </label>
         </PropsMenu>
-        <PropsMenu title="CarryForward">
+        <PropsMenu title="CarryForward" :openType="openType">
           <label for="CF_Src">
             Carryforward Sources:
             <br />
@@ -241,14 +231,19 @@ export default {
             />
           </label>
         </PropsMenu>
-        <PropsMenu title="Media">
+        <PropsMenu title="Media" :openType="openType">
           <label for="Media_URL">
             URL:
             <br />
-            <input id="Media_URL" type="text" value="url" @input="updateURL" />
+            <input
+              id="Media_URL"
+              type="text"
+              value="url"
+              @input="setProp('url', $event.target.value)"
+            />
           </label>
         </PropsMenu>
-        <PropsMenu title="Widgets">
+        <PropsMenu title="Widgets" :openType="openType">
           <label for="Props_Select">
             Select:
             <br />
@@ -270,7 +265,7 @@ export default {
           </label>
         </PropsMenu>
       </div>
-      <div v-on:click="toggleTab" class="tab" id="drawerTab">
+      <div v-on:click="toggleTab" id="drawerTab">
         <span :class="{ rotate: isOpen }">
           <img src="@/assets/img/triangle.png" />
         </span>
@@ -279,41 +274,47 @@ export default {
   </div>
 </template>
 
-<style lang="scss">
-.propertyWrapper {
+<style lang="scss" scoped>
+#propertyWrapper {
   position: relative;
-  z-index: 2;
+  z-index: 1;
 }
 .propertyDrawer {
   position: absolute;
   width: 170px;
   top: 50px;
-  left: -170px;
+  left: -172px;
   padding: 0;
-  transition: all 0.5s ease;
+  transition: all 1.0s ease;
 }
-.tab {
-  position: relative;
+#propertyPanel {
+  background-color: $bg-color;
+}
+#drawerTab {
+  position: absolute;
   left: 170px;
-  border: 1px solid grey;
+  border-top: 1px solid $border-color;
+  border-right: 1px solid $border-color;
+  border-bottom: 1px solid $border-color;
   border-radius: 0 4px 4px 0;
   width: 20px;
   height: 20px;
   cursor: pointer;
   top: 50px;
-  background-color: $bg-color;
-  img {
-    padding: 4px;
-    transform: rotate(90deg);
-    transition-duration: 0.5s;
-  }
+  background-color: $highlight-color;
+}
+#drawerTab img {
+  left: 170px;
+  padding: 4px;
+  transform: rotate(90deg);
+  transition-duration: 1.0s;
 }
 .opened {
-  left: -16px;
+  left: 0px;
 }
-.rotate img {
+#drawerTab .rotate img {
   transform: rotate(-90deg);
-  transition-duration: 0.5s;
+  transition-duration: 1.0s;
 }
 .propertyPanel {
   position: absolute;
@@ -322,7 +323,7 @@ export default {
   left: 16px;
   top: 0px;
   overflow: auto;
-  border: 1px solid black;
+  border: 1px solid $border-color;
   padding: 4px;
   font-size: 12px;
 }
@@ -330,7 +331,7 @@ export default {
   width: 100px;
 }
 .propertyPanel select {
-  border: 1px solid gray;
+  border: 1px solid $border-color;
   width: 100px;
   border-radius: 0;
   overflow: none;

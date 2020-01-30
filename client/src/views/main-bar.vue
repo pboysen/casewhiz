@@ -18,22 +18,25 @@ export default {
 <template>
   <div id="casebar">
     <RoleSelector></RoleSelector>
-    <span id="maintitle">CaseWhiz Designer</span>
+    <div id="main-title">Springbuck Designer</div>
     <CaseFiler v-if="isDesigner"></CaseFiler>
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 #casebar {
-  width: 100%;
-  height: 24px;
   text-align: center;
+  display: inline-block;
   padding: 6px;
+  white-space: nowrap;
+  width: 100%;
+  height: 30px;
   color: $fancy-color;
-  display: block;
+  border-bottom: 1px solid $border-color;
 }
-#maintitle {
-  font-family: "Parisienne", arial, helvetica;
+#main-title {
+  display: inline-block;
+  font-family: $script-font, cursive;
   font-weight: bold;
   font-size: 24px;
 }

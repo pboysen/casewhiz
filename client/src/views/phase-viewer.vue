@@ -1,231 +1,164 @@
 <script>
-import PropertyDrawer from "@/views/property-drawer.vue";
+import { PDFLinkService, PDFFindController } from "pdfjs-dist/webpack";
+import {
+  PDFPageView,
+  DefaultTextLayerFactory,
+  DefaultAnnotationLayerFactory
+} from "pdfjs-dist/web/pdf_viewer";
+import SubmitBar from "@/views/submit-bar.vue";
 import WidgetsBar from "@/views/widgets/widgets-bar.vue";
-import ListBar from "@/views/list-bar.vue";
-import { mapGetters } from "vuex";
 import eventBus from "@/main";
+import { mapGetters } from "vuex";
 
 export default {
   name: "PhaseViewer",
-  components: {
-    PropertyDrawer,
-    WidgetsBar,
-    ListBar
+  components: { SubmitBar, WidgetsBar },
+  props: {
+    pdf: Object,
+    pindex: Number,
+    scale: Number
   },
   data: function() {
     return {
-      left: 0,
+      viewport: null,
+      page: null,
+      isLoaded: false,
+      widgetLayer: null,
       barStyle: "",
-      menuType: "none"
+      showMenu: false
     };
   },
   methods: {
-    submit: function() {},
+    getPhase() {
+      if (this.pdf && this.$el) {
+        var container = this.$el.firstChild;
+        while (container.lastChild) container.removeChild(container.lastChild);
+        var that = this;
+        this.pdf.getPage(this.pindex + 1).then(function(pdfPage) {
+          that.page = pdfPage;
+          const viewport = new PDFPageView({
+            container: container,
+            id: that.pindex + 1,
+            scale: that.scale,
+            defaultViewport: pdfPage.getViewport({ scale: that.scale }),
+            linkService: PDFLinkService,
+            findController: PDFFindController,
+            textLayerFactory: new DefaultTextLayerFactory(),
+            annotationLayerFactory: new DefaultAnnotationLayerFactory(),
+            renderInteractiveForms: false
+          });
+          viewport.setPdfPage(pdfPage);
+          viewport.draw();
+          viewport.div.lastChild.onmouseup = that.textSelect;
+          that.widgetLayer = document.createElement("div");
+          that.widgetLayer.className = "widget-layer";
+          viewport.div.appendChild(that.widgetLayer);
+          that.isLoaded = true;
+        });
+      }
+    },
+    textSelect() {
+      var selection = window.getSelection();
+      if (selection.anchorNode) eventBus.$emit("textSelected", selection);
+      //var selection = window.getSelection();
+      //var range = selection.getRange(0);
+      //var range = document.createRange();
+      //range.selectNodeContents(element);
+      //selection.removeAllRanges();
+      //selection.addRange(range);
+    },
+    // o
+    // ▪
     handleClick(e) {
-      if (this.menuType === "none" && e.ctrlKey) {
-        this.menuType = e.target.textContent === "•" ? "list" : "widget";
-        eventBus.$emit("widgetBarMoved", e);
-        this.barStyle = " left:" + (e.pageX - 50) + "px;";
-        this.barStyle += " top:" + (e.pageY - 40) + "px;";
+      if (!this.showMenu && e.ctrlKey) {
+        if (!this.widgetLayer) this.widgetLayer = e.target;
+        switch (e.target.textContent) {
+          case "o": {
+            this.$store.commit("makeList", {
+              wid: null,
+              type: "multiplechoice",
+              layer: this.widgetLayer,
+              event: event
+            });
+            break;
+          }
+          case "▪": {
+            this.$store.commit("makeList", {
+              wid: null,
+              type: "checklist",
+              layer: this.widgetLayer,
+              event: event
+            });
+            break;
+          }
+          default: {
+            this.showMenu = true;
+            eventBus.$emit("widgetBarMoved", e);
+            this.barStyle = `left: ${e.pageX - 50}px; top: ${e.pageY - 120}px;`;
+            break;
+          }
+        }
       } else {
-        this.menuType = "none";
+        this.showMenu = false;
         this.barStyle = "";
       }
     },
     hide() {
-      this.menuType = "none";
-    },
-    slide(dx) {
-      const panel = document.getElementById("phase-panel");
-      this.left += dx;
-      panel.style.left = this.left + "px";
-      /*
-      for (let i = 0; i < panel.childNodes.length; i++)
-        console.log(panel.childNodes[i].getBoundingClientRect());
-      */
-    },
-    setCurrentPhase(phase) {
-      this.$store.commit("setCurrentPhase", phase);
+      this.showMenu = false;
     }
   },
   computed: {
-    ...mapGetters(["getPhases", "submitTitle", "currentPhase", "currentRole"])
+    ...mapGetters(["currentRole", "currentPhase"]),
+    isCurrentPhase() {
+      if (this.currentPhase == this.pindex) {
+        if (!this.isLoaded) this.getPhase();
+        return true;
+      } else return false;
+    }
   }
 };
 </script>
-
 <template>
-  <div id="phase-content">
-    <div id="phase-bar">
-      <div class="left-phase">
-        <img
-          src="@/assets/img/triangle.png"
-          @click="slide(150)"
-          :class="['left-img', { show: this.left < 0 }]"
-        />
-      </div>
-      <div id="phase-panel">
-        <button
-          v-for="(phase, index) in getPhases"
-          :key="phase.id"
-          :id="phase.id"
-          @click="setCurrentPhase(index)"
-          :class="['phase-button', { active: currentPhase == index }]"
-        >
-          {{ phase.title }}
-        </button>
-      </div>
-      <div class="right-phase">
-        <img
-          src="@/assets/img/triangle.png"
-          @click="slide(-150)"
-          :class="['right-img', { show: this.left > -800 }]"
-        />
-      </div>
-    </div>
-    <PropertyDrawer></PropertyDrawer>
+  <div class="phase-wrapper" v-show="isCurrentPhase">
     <div
-      id="viewerWrapper"
+      class="viewer-container"
       @click="handleClick($event)"
       @drop.stop.prevent
       @dragover.stop.prevent
     >
-      <div id="viewerContainer">
-        <div id="widgetLayer"></div>
+      <div class="page">
+        <div class="widget-layer"></div>
       </div>
     </div>
+    <SubmitBar></SubmitBar>
     <div v-if="currentRole === 'designer'">
       <WidgetsBar
-        v-if="menuType === 'widget'"
+        v-if="showMenu"
+        :layer="widgetLayer"
         :barStyle="barStyle"
         @hide="hide"
       >
       </WidgetsBar>
-      <ListBar v-if="menuType === 'list'" :barStyle="barStyle" @hide="hide">
-      </ListBar>
-    </div>
-    <div id="submit-panel">
-      <button @click="submit">{{ submitTitle }}</button>
     </div>
   </div>
 </template>
-
 <style lang="scss" scoped>
-#phase-content {
-  display: inline-block;
-  float: left;
-  width: 70%;
-  height: 100%;
-  padding: 0px;
-}
-#phase-bar {
-  display: block;
-  width: 100%;
-  height: 24px;
-  vertical-align: middle;
-  background-color: $bg-color;
-  padding: 2px 10px 2px 0;
-  overflow: none;
-  border-bottom: 1px solid gray;
-}
-#phase-panel {
-  height: 24px;
+.phase-wrapper {
   position: absolute;
-  transition: left 0.3s ease;
-  overflow: hidden;
+  top: 0;
+  left: 0;
+  width: 100%;
+  border-right: 1px solid $border-color;
 }
-.phase-button {
-  min-width: 20px;
-  font-size: 14px;
-  padding: 4px 0px 0 4px;
-  color: $txt-color;
-  border: 0;
-  background-color: $bg-color;
-  margin: 0px 0px 0 20px;
-  cursor: pointer;
+.viewer-container {
+  min-height: 310px;
 }
-.phase-button:hover {
-  color: $select-color;
-}
-.active {
-  color: $select-color;
-}
-.left-phase {
-  position: relative;
-  float: left;
-  background-color: $bg-color;
-  width: 24px;
-  height: 100%;
-  display: flex;
-  align-items: center; /* horizontal */
-  justify-content: center; /* vertical */
-  z-index: 2;
-}
-.left-img {
-  visibility: hidden;
-  transform: rotate(-90deg);
-}
-.right-phase {
-  position: relative;
-  float: right;
-  background-color: $bg-color;
-  width: 24px;
-  height: 100%;
-  display: flex;
-  align-items: center; /* horizontal */
-  justify-content: center; /* vertical */
-  z-index: 2;
-}
-.right-img {
-  visibility: hidden;
-  transform: rotate(90deg);
-}
-.hide {
-  visibility: hidden;
-}
-.show {
-  cursor: pointer;
-  visibility: visible;
-}
-#viewerWrapper {
-  height: 600px;
-  background: white;
-}
-#viewerContainer {
+.widget-layer {
   position: absolute;
+  left: 0;
+  top: 0;
   width: 100%;
   height: 100%;
   display: block;
-  overflow: auto;
-  background-color: white;
-}
-#widgetLayer {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  display: block;
-  overflow: auto;
-  z-index: 1;
-}
-
-#submit-panel {
-  position: relative;
-  width: 100%;
-  height: 30px;
-  top: 630px;
-  display: block;
-  text-align: center;
-  background-color: $bg-color;
-  border: 1px solid gray;
-}
-#submit-panel button {
-  border-radius: 5px;
-  margin: 4px;
-  background-color: white;
-  cursor: pointer;
-  visibility: visible;
-}
-#submit-panel button:hover {
-  color: $select-color;
 }
 </style>

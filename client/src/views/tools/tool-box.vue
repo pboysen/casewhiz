@@ -1,10 +1,14 @@
 <script>
+import { Scrolly, ScrollyViewport, ScrollyBar } from "vue-scrolly";
 import Resources from "@/views/tools/resources.vue";
 import Comments from "@/views/tools/comments.vue";
 import Observations from "@/views/tools/observations.vue";
 export default {
   name: "ToolBox",
   components: {
+    Scrolly,
+    ScrollyViewport,
+    ScrollyBar,
     Resources,
     Comments,
     Observations
@@ -12,31 +16,16 @@ export default {
   data: function() {
     return {
       selected: "",
-      tools: ["Resources", "Comments", "Observations"],
-      left: 24
+      tools: ["Resources", "Comments", "Observations"]
     };
-  },
-  methods: {
-    slide(dx) {
-      const panel = document.getElementById("tool-panel");
-      this.left += dx;
-      panel.style.left = this.left + "px";
-    }
   }
 };
 </script>
 
 <template>
   <div id="tool-box">
-    <div id="tool-bar">
-      <div id="left-tool">
-        <img
-          src="@/assets/img/triangle.png"
-          @click="slide(100)"
-          :class="['left-img', { show: this.left < 24 }]"
-        />
-      </div>
-      <div id="tool-panel">
+    <scrolly id="tool-bar" :style="{ width: '100%', height: '35px' }">
+      <scrolly-viewport>
         <button
           v-for="tool in tools"
           :key="tool"
@@ -45,58 +34,42 @@ export default {
         >
           {{ tool }}
         </button>
-      </div>
-      <div id="right-tool">
-        <img
-          src="@/assets/img/triangle.png"
-          @click="slide(-100)"
-          :class="['right-img', { show: this.left > -400 }]"
-        />
-      </div>
-    </div>
-    <div class="tooldiv">
+      </scrolly-viewport>
+      <scrolly-bar axis="x"></scrolly-bar>
+    </scrolly>
+    <div class="tool">
       <component :is="selected" keep-alive></component>
     </div>
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 #tool-box {
-  position: absolute;
-  display: inline-block;
-  float: right;
-  width: 30%;
-  height: 685px;
-  padding-bottom: 6px;
-  background-color: $bg-color;
+  flex: 0 1 auto;
+  width: 20%;
+  height: 100%;
+  padding: 0;
+  box-sizing: border-box;
 }
 #tool-bar {
   display: block;
-  padding: 2px;
-  height: 24px;
-  border-bottom: 1px solid gray;
-}
-#tool-panel {
-  position: absolute;
-  display: inline-block;
-  height: 24px;
-  left: 24px;
-  vertical-align: middle;
-  padding: 2px 2px 2px 0;
-  transition: left 0.3s ease;
   white-space: nowrap;
-  overflow: hidden;
+  background-color: $bg-color;
+  padding: 2px 0px 2px 0;
+  box-sizing: border-box;
+  border-bottom: 1px solid $border-color;
+  overflow: none;
 }
 .tool-button {
-  cursor: pointer;
-  font-size: $txt-font;
-  border: 0;
-  padding: 2px;
-  margin: 0px 5px 0 5px;
   display: inline-block;
-  height: 24px;
+  min-width: 20px;
+  font-size: $txt-font;
+  padding: 4px 0px 0 4px;
   color: $txt-color;
+  border: 0;
   background-color: $bg-color;
+  margin-left: 20px;
+  cursor: pointer;
 }
 .tool-button:hover {
   color: $select-color;
@@ -104,48 +77,26 @@ export default {
 .active {
   color: $select-color;
 }
-#left-tool {
-  position: relative;
-  display: inline-block;
-  float: left;
-  width: 24px;
-  height: 28px;
-  display: flex;
-  align-items: center; /* horizontal */
-  justify-content: center; /* vertical */
-  z-index: 2;
+.scrolly#tool-bar .scrolly-bar:before {
+  background-color: $fancy-color;
+  height: 10px;
+  opacity: 0.5;
 }
-.left-img {
-  visibility: hidden;
-  transform: rotate(-90deg);
+.scrolly-viewport {
 }
-#right-tool {
-  position: relative;
-  display: inline-block;
-  float: right;
-  width: 24px;
-  height: 28px;
-  display: flex;
-  align-items: center; /* horizontal */
-  justify-content: center; /* vertical */
-  z-index: 2;
-}
-.right-img {
-  visibility: hidden;
-  transform: rotate(90deg);
-}
-.show {
-  cursor: pointer;
-  visibility: visible;
-}
-.tooldiv {
-  position: relative;
-  top: 0px;
-  display: block;
+
+.scrolly-bar.axis-x {
+  bottom: -6px;
   width: 100%;
-  height: 640px;
-  background-color: white;
+  height: 10px;
+  min-width: 20%;
+  max-width: 100%;
+}
+.tool {
+  font-size: $txt-font;
+  width: 100%;
+  min-height: 300px;
   padding: 4px;
-  border-left: 1px solid gray;
+  background-color: white;
 }
 </style>

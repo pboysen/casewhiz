@@ -2,7 +2,8 @@
 export default {
   name: "PropsMenu",
   props: {
-    title: String
+    title: String,
+    openType: String
   },
   data: function() {
     return {
@@ -44,7 +45,7 @@ export default {
       v-on:before-leave="beforeLeave"
       v-on:leave="leave"
     >
-      <div v-show="isOpen">
+      <div v-show="isOpen || openType === title.toLowerCase()">
         <div class="PropsBody">
           <slot></slot>
         </div>
@@ -59,16 +60,18 @@ export default {
   margin-bottom: 2px;
   border-radius: 6px;
   overflow: none;
+  font-size: $txt-font;
 }
+
 .accordion .PropsHeader {
+  background-color: $highlight-color;
   height: 16px;
   line-height: 16px;
   border-radius: 4px;
   padding: 2px;
   position: relative;
   color: black;
-  font-size: 12px;
-  background-color: $bg-color;
+  font-size: $small-font;
   cursor: pointer;
 }
 .PropsHeader-icon {
@@ -86,12 +89,13 @@ export default {
   transition-duration: 0.3s;
 }
 .PropsBody {
+  font-size: $small-font;
   input[type="text"] {
+    font-size: $small-font;
     padding: 2px;
-    font-size: $txt-font;
     height: 14px;
     width: 140px;
-    border: 1px solid black;
+    border: 1px solid $border-color;
     margin-bottom: 4px;
   }
   label {

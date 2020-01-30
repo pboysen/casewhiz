@@ -1,7 +1,7 @@
 <script>
 import WidgetWrapper from "@/views/widgets/widget-wrapper.vue";
 export default {
-  name: "MediaWidget",
+  name: "Media",
   data: function() {
     return {
       wid: this.$options.wdata.wid
@@ -13,11 +13,6 @@ export default {
   computed: {
     src() {
       return this.$store.getters.src(this.wid);
-    }
-  },
-  methods: {
-    setSrc(src) {
-      this.$store.commit("setSrc", src);
     }
   }
 };

@@ -1,15 +1,28 @@
 <script>
+import eventBus from "@/main";
 export default {
   name: "WidgetWrapper",
   data: function() {
     return {
-      active: true
+      active: true,
+      widgetLayer: null
     };
+  },
+  mounted() {
+    eventBus.$on("widgetBarMoved", e => {
+      this.widgetLayer = e.target;
+      let drawer = document.getElementById("propertyDrawer");
+      drawer.style.top = e.pageY - 120 + "px;";
+    });
   },
   methods: {
     startDrag() {
       if (!this.active) return;
       this.$store.commit("setCurrentWidget", this.$parent.wid);
+      eventBus.$emit(
+        "typeSelected",
+        this.$parent.$el.getAttribute("widgettype")
+      );
     },
     stopDrag() {
       window.onmousemove = null;
@@ -18,15 +31,22 @@ export default {
       this.$store.commit("setWidgetRect", rect);
     },
     copyDelete(e) {
+      this.widgetLayer = e.target.parentElement;
       var r = this.$el.getBoundingClientRect();
       if (e.pageY < r.top && e.pageY > r.top - 16) {
-        if (e.pageX > r.right - 32 && e.pageX < r.right - 16)
-          this.$store.commit("copyWidget", {
+        if (e.pageX > r.right - 32 && e.pageX < r.right - 16) {
+          var info = {
             wid: this.$parent.wid,
+            layer: this.widgetLayer,
             type: "",
             event: e
-          });
-        else {
+          };
+          this.$store.commit("copyWidget", info);
+        } else {
+          eventBus.$emit(
+            "typeDeselected",
+            this.$parent.$el.getAttribute("widgettype")
+          );
           this.$store.commit("deleteWidget", this.$parent.wid, e);
           this.active = false;
         }
@@ -87,8 +107,8 @@ export default {
   color: red;
   font-size: 12px;
   position: relative;
-  left: 10px;
-  top: 0px;
+  left: 0;
+  top: 0;
   margin: 0;
 }
 

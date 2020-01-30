@@ -1,10 +1,12 @@
 import Vue from "vue";
 import Vuex from "vuex";
-import textfield from "@/views/widgets/textfield-widget.vue";
-import textarea from "@/views/widgets/textarea-widget.vue";
-import select from "@/views/widgets/select-widget.vue";
-import carryforward from "@/views/widgets/carryforward-widget.vue";
-import media from "@/views/widgets/media-widget.vue";
+import textfield from "@/views/widgets/textfield.vue";
+import textarea from "@/views/widgets/textarea.vue";
+import select from "@/views/widgets/select.vue";
+import carryforward from "@/views/widgets/carryforward.vue";
+import media from "@/views/widgets/media.vue";
+import checklist from "@/views/widgets/checklist.vue";
+import multiplechoice from "@/views/widgets/multiplechoice.vue";
 Vue.use(Vuex);
 
 const getDefaultState = () => {
@@ -22,7 +24,7 @@ const things = {
         isSource: true,
         isTarget: true,
         isDraggable: true,
-        sizes: ["5", "10", "20", "40", "60"],
+        sizes: ["5", "10", "20", "40"],
         prototype: {
           type: "textfield",
           id: null,
@@ -102,30 +104,60 @@ const things = {
           }
         }
       },
-      list: {
-        type: "list",
+      multiplechoice: {
+        type: "multiplechoice",
         src: "multiplechoice.png",
+        constructor: Vue.extend(multiplechoice),
         isSource: true,
         isTarget: false,
         isDraggable: false,
-        childType: "radiobutton",
         prototype: {
-          type: "list",
+          type: "multiplechoice",
           id: null,
           rect: null,
           props: {
-            childIds: [],
+            optional: false
+          }
+        }
+      },
+      checklist: {
+        type: "checklist",
+        src: "checklist.png",
+        constructor: Vue.extend(checklist),
+        isSource: true,
+        isTarget: false,
+        isDraggable: false,
+        prototype: {
+          type: "checklist",
+          id: null,
+          rect: null,
+          props: {
             optional: false
           }
         }
       }
     },
     tools: {
+      observations: {
+        userRole: "student",
+        prototype: {
+          id: 0,
+          observation: {}
+        }
+      },
       comments: {
-        userRole: "student"
+        userRole: "student",
+        prototype: {
+          id: 0,
+          comment: {}
+        }
       },
       resources: {
-        userRole: "student"
+        userRole: "student",
+        prototype: {
+          id: 0,
+          resource: {}
+        }
       },
       scores: {
         useRole: "instructor"
@@ -133,16 +165,13 @@ const things = {
     }
   },
   getters: {
-    getWidgets(state) {
+    getWidgets: state => {
       return state.widgets;
     },
-    getTools(state) {
+    getTools: state => {
       return state.tools;
     },
-    getWidgetSettings(state, info) {
-      return state.widgets[info.type];
-    },
-    textSizes(state) {
+    sizes: state => {
       return state.widgets["textfield"].sizes;
     }
   },

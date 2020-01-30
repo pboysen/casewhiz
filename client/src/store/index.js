@@ -1,9 +1,8 @@
 import Vue from "vue";
 import Vuex from "vuex";
-import { setDraggable } from "@/util/pdflib.js";
 import things from "./modules/things";
 import responses from "./modules/responses";
-import { showPhase } from "@/util/pdflib.js";
+import eventBus from "@/main";
 
 Vue.use(Vuex);
 
@@ -48,42 +47,28 @@ const store = new Vuex.Store({
       "select",
       "carryforward",
       "media",
-      "list"
+      "multiplechoice",
+      "checklist"
     ],
-    selectedToolTypes: ["Resources", "Comments", "Observations"]
+    selectedToolTypes: ["Observations", "Comments" ]
   },
   getters: {
-    currentRole: state => {
-      return state.role;
-    },
-    currentPhase: state => {
-      return state.phase;
-    },
-    currentWidget: state => {
-      return state.widget;
-    },
-    currentTool: state => {
-      return state.tool;
-    },
-    getPhases: state => {
-      return state.phases;
-    },
-    getWidget: state => wid => {
-      return state.phases[state.phase].widgets[wid];
-    },
+    currentCase: state => state,
+    currentRole: state => state.role,
+    currentPhase: state => state.phase,
+    currentWidget: state => state.widget,
+    currentTool: state => state.tool,
+    getPhases: state => state.phases,
     noListWidgets: () => {
       var selected = [];
       store.getters.selectedWidgets.forEach(w => {
-        if (w.type != "list") selected.push(w);
+        if (w.type != "multiplechoice" && w.type != "checklist")
+          selected.push(w);
       });
       return selected;
     },
-    tools: state => {
-      return state.tools;
-    },
-    selectedWidgetTypes: state => {
-      return state.selectedWidgetTypes;
-    },
+    tools: state => state.tools,
+    selectedWidgetTypes: state => state.selectedWidgetTypes,
     selectedWidgets: state => {
       let widgets = [];
       state.selectedWidgetTypes.forEach(type => {
@@ -91,47 +76,42 @@ const store = new Vuex.Store({
       });
       return widgets;
     },
-    selectedTools: state => {
-      return state.selectedTools;
-    },
-    phaseTitle: state => {
-      return state.phases[state.phase].title;
-    },
-    submitTitle: state => {
-      return state.phases[state.phase].submit;
-    },
+    getWidgetRecord: state => wid => state.phases[state.phase].widgets[wid],
+    selectedTools: state => state.selectedTools,
+    phaseTitle: state => state.phases[state.phase].title,
+    submitTitle: state => state.phases[state.phase].submit,
+    // widget props
     size: state => wid => {
-      if (!wid) return 20;
-      return state.phases[state.phase].widgets[wid].props.size;
+      return state.phases[state.phase].widgets[wid].props["size"];
     },
     optional: state => wid => {
-      if (!wid) return false;
-      return state.phases[state.phase].widgets[wid].props.optional;
-    },
-    options: state => wid => {
-      if (!wid) return false;
-      return state.phases[state.phase].widgets[wid].props.options;
-    },
-    multiple: state => wid => {
-      if (!wid) return false;
-      return state.phases[state.phase].widgets[wid].props.multiple;
+      return state.phases[state.phase].widgets[wid].props["optional"];
     },
     sources: state => wid => {
-      if (!wid) return false;
-      return state.phases[state.phase].widgets[wid].props.sources;
+      return state.phases[state.phase].widgets[wid].props["sources"];
     },
-    src: state => wid => {
-      if (!wid) return false;
-      return state.phases[state.phase].widgets[wid].props.src;
+    url: state => wid => {
+      return state.phases[state.phase].widgets[wid].props["url"];
     },
-    target: state => wid => {
-      if (!wid) return false;
-      var sources = state.phases[state.phase].widgets[wid].props.sources;
-      var target = "";
-      sources.forEach(txt => {
-        target += "<p>" + txt + "</p>";
-      });
-      return target;
+    options: state => wid => {
+      return state.phases[state.phase].widgets[wid].props["options"];
+    },
+    carryforward: state => wid => {
+      if (state.role === "student") {
+        var result = "";
+        var sources = state.phases[state.phase].widgets[wid].props["sources"];
+        sources.forEach(source => (result += source));
+        return result;
+      } else return "";
+    },
+    observations: state => {
+      return state.phases[state.phase].tools.observations;
+    },
+    comments: state => {
+      return state.phases[state.phase].tools.comments;
+    },
+    resources: state => {
+      return state.phases[state.phase].tools.resources;
     }
   },
   mutations: {
@@ -139,11 +119,10 @@ const store = new Vuex.Store({
       Object.assign(state, newstate);
       store.dispatch("things/resetState");
       store.dispatch("responses/resetState");
-      store.setCurrentPhase(0);
+      store.commit("setCurrentPhase", 0);
     },
     setCurrentPhase(state, n) {
       state.phase = n;
-      showPhase(n);
     },
     setCurrentTool(state, n) {
       state.tool = n;
@@ -152,8 +131,7 @@ const store = new Vuex.Store({
       state.role = aRole;
     },
     setCurrentWidget(state, wid) {
-      if (state.phases[state.phase].widgets[wid]) state.widget = wid;
-      else console.error("Missing widget:", wid, ". Current widget not set.");
+      state.widget = wid;
     },
     setPhaseTitle(state, title) {
       state.phases[state.phase].title = title;
@@ -161,23 +139,9 @@ const store = new Vuex.Store({
     setSubmitTitle(state, title) {
       state.phases[state.phase].submit = title;
     },
-    setSize(state, size) {
-      state.phases[state.phase].widgets[state.widget].props.size = size;
-    },
-    setOptional(state, optional) {
-      state.phases[state.phase].widgets[state.widget].props.optional = optional;
-    },
-    setOptions(state, options) {
-      state.phases[state.phase].widgets[state.widget].props.options = options;
-    },
-    setMultiple(state, multiple) {
-      state.phases[state.phase].widgets[state.widget].props.multiple = multiple;
-    },
-    setSources(state, sources) {
-      state.phases[state.phase].widgets[state.widget].props.sources = sources;
-    },
-    setSrc(state, src) {
-      state.phases[state.phase].widgets[state.widget].props.src = src;
+    setProp(state, data) {
+      state.phases[state.phase].widgets[state.widget].props[data.prop] =
+        data.value;
     },
     setSelectedWidgetTypes(state, selected) {
       state.selectedWidgetTypes = selected;
@@ -189,27 +153,43 @@ const store = new Vuex.Store({
       state.phases[state.phase].widgets[state.widget].rect = rect;
     },
     addWidget(state, info) {
-      info.wid = state.wcnt++;
-      var settings = things.getters.getWidgetSettings(things.state, info);
-      var rec = JSON.parse(JSON.stringify(settings.prototype));
-      rec.id = info.wid;
-      Vue.set(state.phases[state.phase].widgets, rec.id, rec);
-      makeWidget(state, info);
+      var settings = things.getters.getWidgets(things.state)[info.type];
+      if (!info.wid) info.widgetRecord = settings.prototype;
+      var wrec = JSON.parse(JSON.stringify(info.widgetRecord));
+      wrec.id = info.wid = state.wcnt++;
+      var wdata = { wid: info.wid };
+      info.widget = new settings.constructor({ wdata, store });
+      Vue.set(state.phases[state.phase].widgets, wrec.id, wrec);
+      info.widget.$mount();
+      var el = info.widget.$el;
+      info.layer.appendChild(el);
+      el.setAttribute("wid", info.wid);
+      el.style = info.event.target.style;
+      if (settings.isDraggable) setDraggable(el);
+      eventBus.$emit("typeSelected", info.type);
+      store.commit("setCurrentWidget", info.wid);
     },
     copyWidget(state, info) {
-      var widgetRec = store.getters.getWidget(info.wid);
-      if (widgetRec) {
-        var rec = JSON.parse(JSON.stringify(widgetRec));
-        info.wid = rec.id = state.wcnt++;
-        info.type = widgetRec.type;
-        Vue.set(state.phases[state.phase].widgets, info.wid, rec);
-        makeWidget(state, info);
-      } else {
-        console.error("no wid:" + info.wid);
-      }
+      info.widgetRecord = store.getters.getWidgetRecord(info.wid);
+      info.type = info.widgetRecord.type;
+      store.commit("addWidget", info);
     },
-    deleteWidget(state, wid) {
-      delete state.phases[state.phase].widgets[wid];
+    deleteWidget(state) {
+      delete state.phases[state.phase].widgets[state.widget];
+      store.commit("setCurrentWidget", null);
+    },
+    makeList(state, info) {
+      store.commit("addWidget", info);
+      populateList(state, info);
+    },
+    addObservation(state, text) {
+      state.phases[state.phase].tool.observations;
+    },
+    addComment(state, text) {
+      state.phases[state.phase].tool.comments;
+    },
+    addResource(state, url) {
+      state.phases[state.phase].tool.resource;
     },
     setFileName(state, filename) {
       state.filename = filename;
@@ -217,18 +197,60 @@ const store = new Vuex.Store({
   }
 });
 
-const makeWidget = function(state, info) {
-  store.commit("setCurrentWidget", info.wid);
-  var settings = things.getters.getWidgetSettings(things.state, info);
-  var wdata = { wid: info.wid };
-  var widget = new settings.constructor({ wdata, store });
-  widget.$mount();
-  var el = widget.$el;
-  document.getElementById("widgetLayer").appendChild(el);
-  el.setAttribute("wid", info.wid);
-  el.style.left = info.event.pageX + 40 + "px";
-  el.style.top = info.event.pageY - 50 + "px";
-  if (settings.isDraggable) setDraggable(el);
+function populateList(state, info) {
+  var bullet = info.event.target;
+  var firstLeft = bullet.offsetLeft;
+  //var list = makeWidget(info.type, firstLeft - 6, firstTop - 15);
+  var list = info.widget.$el.firstChild;
+  info.widget.$el.style.left = parseInt(bullet.style.left, 10) - 10 + "px";
+  info.widget.$el.style.top = parseInt(bullet.style.top, 10) - 2 + "px";
+  console.log(info.widget);
+  var subtype = info.type === "multiplechoice" ? "radio" : "checkbox";
+  var nextLeft = firstLeft;
+  var value = 1;
+  var node = bullet;
+  var wid = info.widget.wid;
+  while (nextLeft >= firstLeft) {
+    if (nextLeft == firstLeft) {
+      if (bullet.textContent != node.textContent) break;
+      var input = document.createElement("input");
+      input.name = subtype === "radio" ? `mc${wid}` : `cl${wid}-${value}`;
+      input.type = subtype;
+      input.value = value++;
+      input.style = node.style;
+      console.log(node);
+      list.appendChild(input);
+    }
+    node = node.nextElementSibling;
+    nextLeft = node.offsetLeft;
+  }
+}
+
+const setDraggable = function(widgetWrapper) {
+  widgetWrapper.onmousedown = function(e) {
+    var left = widgetWrapper.offsetLeft;
+    var top = widgetWrapper.offsetTop;
+    var width = widgetWrapper.offsetWidth;
+    var height = widgetWrapper.offsetHeight;
+    var offsetX = e.pageX - left;
+    var offsetY = e.pageY - top;
+
+    moveAt(e.pageX, e.pageY);
+
+    function moveAt(pageX, pageY) {
+      widgetWrapper.style = `left: ${pageX - offsetX}px; top: ${pageY -
+        offsetY}px;`;
+    }
+
+    window.onmousemove = function(e) {
+      // move if not resizing
+      if (
+        widgetWrapper.offsetWidth == width &&
+        widgetWrapper.offsetHeight == height
+      )
+        moveAt(e.pageX, e.pageY);
+    };
+  };
 };
 
 /*

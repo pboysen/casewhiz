@@ -1,12 +1,12 @@
 <script>
 import MainBar from "@/views/main-bar.vue";
-import PhaseViewer from "@/views/phase-viewer.vue";
+import CaseViewer from "@/views/case-viewer.vue";
 import ToolBox from "@/views/tools/tool-box.vue";
 export default {
   name: "CaseWiz",
   components: {
     MainBar,
-    PhaseViewer,
+    CaseViewer,
     ToolBox
   }
 };
@@ -15,28 +15,34 @@ export default {
   <div id="app">
     <MainBar></MainBar>
     <div id="main-display">
-      <PhaseViewer></PhaseViewer>
+      <CaseViewer></CaseViewer>
       <ToolBox></ToolBox>
     </div>
   </div>
 </template>
-<style lang="scss">
+<style lang="scss" scoped>
 body {
-  padding: 0;
+  display: block;
   margin: 0;
+  padding: 0;
+  white-space: nowrap;
   tabindex: -1;
 }
 #app {
-  width: 100%;
-  height: 100%;
   margin: 0;
   padding: 0;
-  background-color: $bg-color;
+  display: block;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  border: 1px solid $border-color;
 }
 #main-display {
+  position: relative;
+  display: flex;
   width: 100%;
   height: 100%;
-  white-space: nowrap;
-  background-color: $bg-color;
+  position: relative;
+  min-height: 300px;
 }
 </style>

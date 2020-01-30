@@ -6,8 +6,7 @@ import {
   PDFPageView,
   PDFLinkService,
   PDFFindController,
-  DefaultAnnotationLayerFactory,
-  DefaultTextLayerFactory
+  pdfjsViewer
 } from "pdfjs-dist/web/pdf_viewer";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = "pdfjs/pdf.worker.js";
@@ -17,7 +16,7 @@ var currentPDF = null;
 
 var CMAP_URL = "pdfjs-dist/cmaps/";
 var CMAP_PACKED = true;
-var DEFAULT_SCALE = 1.0;
+var DEFAULT_SCALE = 0.8;
 
 var phaseViews = [];
 
@@ -146,26 +145,27 @@ function loadDocument(url) {
 }
 
 function loadPhase(pindex) {
-  if (phaseViews[pindex] || !currentPDF) {
-    return;
-  }
+  if (phaseViews[pindex] || !currentPDF) return;
   let view = document.createElement("div");
   view.id = "viewerContainer";
   phaseViews[pindex] = view;
   currentPDF.getPage(pindex + 1).then(function(pdfPage) {
-    var pdfView = new PDFPageView({
+    var viewport = new PDFPageView({
       container: phaseViews[pindex],
       id: pindex + 1,
       scale: DEFAULT_SCALE,
-      defaultViewport: pdfPage.getViewport({ scale: DEFAULT_SCALE }),
+      defaultViewport: pdfPage.getViewport({ scale: 1.0 }),
       linkService: PDFLinkService,
       findController: PDFFindController,
-      textLayerFactory: new DefaultTextLayerFactory(),
-      annotationLayerFactory: new DefaultAnnotationLayerFactory(),
-      renderInteractiveForms: true
+      textLayerFactory: new pdfjsViewer.DefaultTextLayerFactory(),
+      annotationLayerFactory: new pdfjsViewer.DefaultAnnotationLayerFactory(),
+      renderInteractiveForms: false
     });
-    pdfView.setPdfPage(pdfPage);
-    pdfView.draw();
+    viewport.setPdfPage(pdfPage);
+    viewport.draw();
+    var container = document.getElementById("viewerContainer");
+    container.style.width = viewport.canvas.width + "px";
+    container.style.height = viewport.canvas.height + "px";
     let pageView = phaseViews[pindex].getElementsByClassName("page").item(0);
     let layer = document.createElement("div");
     layer.id = "widgetLayer";
@@ -191,14 +191,12 @@ function getNewCase(file, nphases) {
     phases.push(phase);
   }
   return {
-    fileName: file,
-    wid: 1,
-    current: {
-      role: "designer",
-      phase: 0,
-      widget: 0,
-      tool: 0
-    },
+    filename: "test.pdf",
+    wcnt: 1,
+    role: "designer",
+    phase: 0,
+    tool: 0,
+    widget: null,
     selectedWidgetTypes: [
       "textfield",
       "textarea",

@@ -18,16 +18,18 @@ export default {
     </select>
   </div>
 </template>
-<style lang="scss">
+<style lang="scss" scoped>
 #roles {
+  display: inline-block;
   float: left;
   margin-left: 10px;
   span {
-    font-size: 12px;
+    font-size: $small-font;
     font-weight: bold;
   }
 }
 #role {
+  font-size: $txt-font;
   margin-top: 2px;
   background-color: #ffffff;
   border-radius: 5px;

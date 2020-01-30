@@ -1,7 +1,7 @@
 <script>
 import WidgetWrapper from "@/views/widgets/widget-wrapper.vue";
 export default {
-  name: "TextArea",
+  name: "Checklist",
   data: function() {
     return {
       wid: this.$options.wdata.wid
@@ -13,15 +13,19 @@ export default {
 };
 </script>
 <template>
-  <WidgetWrapper widgettype="textarea">
-    <textarea class="textarea" />
+  <WidgetWrapper widgettype="checklist">
+    <div class="checklist"></div>
   </WidgetWrapper>
 </template>
-
 <style lang="scss">
-.widget[widgettype="textarea"] {
-  cursor: default;
-  rows: 4;
-  cols: 50;
+.media {
+}
+.widget[widgettype="checklist"] div {
+  padding: 4px;
+}
+.widget .checklist {
+  input[type="checkbox"] {
+    display: block;
+  }
 }
 </style>

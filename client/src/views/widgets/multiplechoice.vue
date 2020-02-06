@@ -17,14 +17,15 @@ export default {
     <div class="multiplechoice"></div>
   </WidgetWrapper>
 </template>
-<style lang="scss">
+<style lang="scss" scoped>
 .widget[widgettype="multiplechoice"] div {
-  padding-left: 4px;
-  position: relative;
+  padding-left: 10px;
+  line-height: 16px;
+  position: absolute;
 }
-.widget .multiplechoice {
-  input[type="radio"] {
-    display: block;
-  }
+.multiplechoice {
+}
+.multiplechoice input[type="radio"] {
+  display: block;
 }
 </style>

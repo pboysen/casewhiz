@@ -10,6 +10,12 @@ export default {
       isOpen: false
     };
   },
+  computed: {
+    show: function() {
+      if (this.isOpen) return true;
+      return this.openType === this.title.toLowerCase();
+    }
+  },
   methods: {
     toggle: function() {
       this.isOpen = !this.isOpen;
@@ -29,12 +35,11 @@ export default {
   }
 };
 </script>
-
 <template>
   <div class="accordion">
     <div class="PropsHeader" v-on:click="toggle">
       <div name="header">{{ title }}</div>
-      <span :class="['PropsHeader-icon', { rotate: isOpen }]">
+      <span :class="['PropsHeader-icon', { rotate: show }]">
         <img src="@/assets/img/triangle.png" />
       </span>
     </div>
@@ -45,7 +50,7 @@ export default {
       v-on:before-leave="beforeLeave"
       v-on:leave="leave"
     >
-      <div v-show="isOpen || openType === title.toLowerCase()">
+      <div v-show="show">
         <div class="PropsBody">
           <slot></slot>
         </div>

@@ -13,13 +13,20 @@ export default {
   computed: {
     size() {
       return this.$store.getters.size(this.wid);
+    },
+    isDesigner() {
+      return this.$store.getters.currentRole === "designer";
     }
   }
 };
 </script>
 <template>
   <WidgetWrapper widgettype="textfield">
-    <input type="text" :size="size" class="textfield" />
+    <input
+      type="text"
+      :size="size"
+      :class="['textfield', { user: !isDesigner }]"
+    />
   </WidgetWrapper>
 </template>
 <style lang="scss">
@@ -27,5 +34,9 @@ export default {
   cursor: default;
   pointer-events: none;
   border-radius: 0;
+}
+.textfield.user {
+  cursor: text;
+  pointer-events: auto;
 }
 </style>

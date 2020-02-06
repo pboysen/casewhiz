@@ -17,7 +17,7 @@ export default {
   },
   methods: {
     startDrag() {
-      if (!this.active) return;
+      if (!this.active || !this.isDesigner) return;
       this.$store.commit("setCurrentWidget", this.$parent.wid);
       eventBus.$emit(
         "typeSelected",
@@ -26,11 +26,12 @@ export default {
     },
     stopDrag() {
       window.onmousemove = null;
-      if (!this.active) return;
+      if (!this.active || !this.isDesigner) return;
       var rect = this.$el.getBoundingClientRect();
       this.$store.commit("setWidgetRect", rect);
     },
     copyDelete(e) {
+      if (!(this.active && this.isDesigner)) return;
       this.widgetLayer = e.target.parentElement;
       var r = this.$el.getBoundingClientRect();
       if (e.pageY < r.top && e.pageY > r.top - 16) {
@@ -56,6 +57,9 @@ export default {
     }
   },
   computed: {
+    isDesigner() {
+      return this.$store.getters.currentRole === "designer";
+    },
     isActive() {
       return this.active;
     },
@@ -71,7 +75,7 @@ export default {
 <template>
   <div
     v-if="isActive"
-    class="widget"
+    :class="['widget', { user: !isDesigner }]"
     wid=""
     @mousedown="startDrag"
     @mouseup="stopDrag"
@@ -88,6 +92,7 @@ export default {
   cursor: pointer;
   padding: 0;
   margin: 0;
+  min-width: 30px;
 }
 .widget::before {
   font-size: 10px;
@@ -96,11 +101,17 @@ export default {
   top: 2px;
   left: 2px;
 }
+.widget.user::before {
+  display: none;
+}
 .widget:hover::after {
   position: absolute;
   top: -16px;
   right: 0px;
   content: url(../../assets/img/widget.png);
+}
+.widget.user:hover::after {
+  display: none;
 }
 .optional {
   display: block;

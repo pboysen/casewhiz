@@ -3,12 +3,14 @@ import eventBus from "@/main";
 import PhaseBar from "@/views/phase-bar.vue";
 import PropertyDrawer from "@/views/property-drawer.vue";
 import PhaseViewer from "@/views/phase-viewer.vue";
+import SubmitBar from "@/views/submit-bar.vue";
 export default {
   name: "CaseViewer",
   components: {
     PhaseBar,
     PhaseViewer,
-    PropertyDrawer
+    PropertyDrawer,
+    SubmitBar
   },
   data: function() {
     return {
@@ -19,7 +21,6 @@ export default {
   },
   mounted() {
     eventBus.$on("loadDocument", url => this.getCase(url));
-    //eventBus.$on("textSelected", url => console.log(url));
   },
   methods: {
     getCase(url) {
@@ -67,6 +68,9 @@ export default {
   computed: {
     getPDF() {
       return this.pdf;
+    },
+    currentRole() {
+      return this.$store.getters.currentRole;
     }
   }
 };
@@ -83,13 +87,15 @@ export default {
         :key="phase.id"
       />
     </div>
-    <PropertyDrawer></PropertyDrawer>
+    <PropertyDrawer v-if="currentRole == 'designer'"></PropertyDrawer>
+    <SubmitBar v-if="currentRole === 'student'"></SubmitBar>
   </div>
 </template>
 }
 <style lang="scss" scoped>
 @import "../../node_modules/pdfjs-dist/web/pdf_viewer.css";
 #case-viewer {
+  position: relative;
   flex: 2 1 auto;
   height: 100%;
   min-width: 80%;
@@ -97,5 +103,6 @@ export default {
 }
 #phase-container {
   position: relative;
+  height: 100%;
 }
 </style>

@@ -10,10 +10,10 @@ import multiplechoice from "@/views/widgets/multiplechoice.vue";
 Vue.use(Vuex);
 
 const getDefaultState = () => {
-  return things.state;
+  return factory.state;
 };
 
-const things = {
+const factory = {
   namespaced: true,
   state: {
     widgets: {
@@ -28,6 +28,7 @@ const things = {
         prototype: {
           type: "textfield",
           id: null,
+          phase: null,
           rect: null,
           sources: [],
           props: {
@@ -46,6 +47,7 @@ const things = {
         prototype: {
           type: "textarea",
           id: null,
+          phase: null,
           rect: null,
           props: {
             sources: [],
@@ -63,6 +65,7 @@ const things = {
         prototype: {
           type: "select",
           id: null,
+          phase: null,
           rect: null,
           props: {
             options: "",
@@ -82,6 +85,7 @@ const things = {
         prototype: {
           type: "carryforward",
           id: null,
+          phase: null,
           rect: null,
           props: {
             sources: []
@@ -98,6 +102,7 @@ const things = {
         prototype: {
           type: "media",
           id: null,
+          phase: null,
           rect: null,
           props: {
             src: ""
@@ -114,6 +119,7 @@ const things = {
         prototype: {
           type: "multiplechoice",
           id: null,
+          phase: null,
           rect: null,
           props: {
             optional: false
@@ -130,6 +136,7 @@ const things = {
         prototype: {
           type: "checklist",
           id: null,
+          phase: null,
           rect: null,
           props: {
             optional: false
@@ -139,24 +146,33 @@ const things = {
     },
     tools: {
       observations: {
+        title: "Observations",
         userRole: "student",
         prototype: {
-          id: 0,
-          observation: {}
+          id: null,
+          phase: null,
+          text: ""
         }
       },
       comments: {
+        title: "Comments",
         userRole: "student",
         prototype: {
-          id: 0,
-          comment: {}
+          id: null,
+          phase: null,
+          text: "",
+          date: null,
+          sel: null
         }
       },
       resources: {
+        title: "Resources",
         userRole: "student",
         prototype: {
-          id: 0,
-          resource: {}
+          id: null,
+          phase: null,
+          url: "",
+          title: ""
         }
       },
       scores: {
@@ -171,7 +187,23 @@ const things = {
     getTools: state => {
       return state.tools;
     },
-    sizes: state => {
+    makeNewWidget: state => info => {
+      var wdata = { wid: info.wid };
+      var store = info.store;
+      info.widget = new state.widgets[info.type].constructor({ wdata, store });
+    },
+    getNewWidgetRecord: state => type => {
+      var prototype = state.widgets[type].prototype;
+      var obs = JSON.parse(JSON.stringify(prototype));
+      return obs;
+    },
+    getNewToolRecord: state => type => {
+      var prototype = state.tools[type].prototype;
+      var obs = JSON.parse(JSON.stringify(prototype));
+      obs.id = state.tcnt++;
+      return obs;
+    },
+    textSizes: state => {
       return state.widgets["textfield"].sizes;
     }
   },
@@ -187,4 +219,4 @@ const things = {
   }
 };
 
-export default things;
+export default factory;

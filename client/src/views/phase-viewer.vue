@@ -5,14 +5,13 @@ import {
   DefaultTextLayerFactory,
   DefaultAnnotationLayerFactory
 } from "pdfjs-dist/web/pdf_viewer";
-import SubmitBar from "@/views/submit-bar.vue";
 import WidgetsBar from "@/views/widgets/widgets-bar.vue";
 import eventBus from "@/main";
 import { mapGetters } from "vuex";
 
 export default {
   name: "PhaseViewer",
-  components: { SubmitBar, WidgetsBar },
+  components: { WidgetsBar },
   props: {
     pdf: Object,
     pindex: Number,
@@ -51,7 +50,7 @@ export default {
           viewport.draw();
           viewport.div.lastChild.onmouseup = that.textSelect;
           that.widgetLayer = document.createElement("div");
-          that.widgetLayer.className = "widget-layer";
+          that.widgetLayer.className = "widgetLayer";
           viewport.div.appendChild(that.widgetLayer);
           that.isLoaded = true;
         });
@@ -59,7 +58,9 @@ export default {
     },
     textSelect() {
       var selection = window.getSelection();
-      if (selection.anchorNode) eventBus.$emit("textSelected", selection);
+      this.$root.$emit("textSelected", selection);
+    },
+    highlight() {
       //var selection = window.getSelection();
       //var range = selection.getRange(0);
       //var range = document.createRange();
@@ -73,7 +74,7 @@ export default {
       if (!this.showMenu && e.ctrlKey) {
         if (!this.widgetLayer) this.widgetLayer = e.target;
         switch (e.target.textContent) {
-          case "o": {
+          case "•": {
             this.$store.commit("makeList", {
               wid: null,
               type: "multiplechoice",
@@ -127,10 +128,9 @@ export default {
       @dragover.stop.prevent
     >
       <div class="page">
-        <div class="widget-layer"></div>
+        <div class="widgetLayer"></div>
       </div>
     </div>
-    <SubmitBar></SubmitBar>
     <div v-if="currentRole === 'designer'">
       <WidgetsBar
         v-if="showMenu"
@@ -144,19 +144,17 @@ export default {
 </template>
 <style lang="scss" scoped>
 .phase-wrapper {
-  position: absolute;
-  top: 0;
-  left: 0;
+  position: relative;
   width: 100%;
-  border-right: 1px solid $border-color;
 }
 .viewer-container {
-  min-height: 310px;
+  min-height: 270px;
 }
-.widget-layer {
+.widgetLayer {
   position: absolute;
   left: 0;
   top: 0;
+  line-height: 16px;
   width: 100%;
   height: 100%;
   display: block;

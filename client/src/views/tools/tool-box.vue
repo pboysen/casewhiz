@@ -3,6 +3,7 @@ import { Scrolly, ScrollyViewport, ScrollyBar } from "vue-scrolly";
 import Resources from "@/views/tools/resources.vue";
 import Comments from "@/views/tools/comments.vue";
 import Observations from "@/views/tools/observations.vue";
+import { mapGetters } from "vuex";
 export default {
   name: "ToolBox",
   components: {
@@ -16,8 +17,17 @@ export default {
   data: function() {
     return {
       selected: "",
-      tools: ["Resources", "Comments", "Observations"]
+      tools: ["Observations", "Resources", "Comments"]
     };
+  },
+  computed: {
+    ...mapGetters(["currentTool"])
+  },
+  methods: {
+    selectTool(tool) {
+      this.selected = tool;
+      this.$store.commit("setCurrentTool", tool);
+    }
   }
 };
 </script>
@@ -29,7 +39,7 @@ export default {
         <button
           v-for="tool in tools"
           :key="tool"
-          @click="selected = tool"
+          @click="selectTool(tool)"
           :class="['tool-button', { active: selected === tool }]"
         >
           {{ tool }}

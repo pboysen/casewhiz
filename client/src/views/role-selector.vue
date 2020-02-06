@@ -3,7 +3,7 @@ export default {
   name: "RoleSelector",
   methods: {
     setRole: function(role) {
-      this.$store.commit("setRole", role);
+      this.$store.commit("setCurrentRole", role);
     }
   }
 };

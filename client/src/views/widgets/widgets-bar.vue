@@ -9,6 +9,7 @@ export default {
       this.$emit("hide");
       var info = {
         wid: null,
+        phase: this.$store.getters.currentPhase,
         type: type,
         layer: this.layer,
         event: event

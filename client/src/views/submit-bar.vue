@@ -18,11 +18,8 @@ export default {
 </template>
 <style lang="scss" scoped>
 #submit-panel {
-  position: absolute;
+  position: relative;
   margin-top: 10px;
-  bottom: 0;
-  left: 0;
-  margin: 0;
   height: 30px;
   width: 100%;
   box-sizing: border-box;

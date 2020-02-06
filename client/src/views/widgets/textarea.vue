@@ -19,7 +19,7 @@ export default {
 </script>
 <template>
   <WidgetWrapper widgettype="textarea">
-    <textarea class="textarea">carryforward</textarea>
+    <textarea class="textarea"></textarea>
   </WidgetWrapper>
 </template>
 

@@ -8,6 +8,12 @@ export default {
   components: {
     PropsMenu
   },
+  data: function() {
+    return {
+      isOpen: false,
+      openType: ""
+    };
+  },
   mounted() {
     eventBus.$on("widgetBarMoved", e => {
       let drawer = document.getElementById("propertyDrawer");
@@ -16,20 +22,12 @@ export default {
     eventBus.$on("typeSelected", type => (this.openType = type));
     eventBus.$on("typeDeselected", () => (this.openType = ""));
   },
-  data: function() {
-    return {
-      isOpen: false,
-      openType: ""
-    };
-  },
   computed: {
-    ...mapGetters([
-      "selectedWidgetTypes",
-      "phaseTitle",
-      "submitTitle",
-      "currentWidget"
-    ]),
-    ...mapGetters("things", ["getWidgets", "sizes"]),
+    ...mapGetters(["selectedWidgetTypes", "phaseTitle", "submitTitle"]),
+    ...mapGetters("factory", ["getWidgets", "textSizes"]),
+    wid() {
+      return this.$store.getters.currentWidget;
+    },
     size() {
       if (!this.wid) return 20;
       return this.$store.getters.size(this.wid);
@@ -42,16 +40,21 @@ export default {
       if (!this.wid) return [];
       return this.$store.getters.sources(this.wid);
     },
-    url() {
+    possibleSources() {
+      return this.$store.getters.possibleSources;
+    },
+    src() {
       if (!this.wid) return "";
-      return this.$store.getters.url(this.wid);
+      return this.$store.getters.src(this.wid);
     },
     options() {
       if (!this.wid) return [];
       return this.$store.getters.options(this.wid);
     },
-    wid() {
-      return this.$store.getters.currentWidget;
+    order() {
+      var order = "";
+      if (this.sources) this.sources.forEach(src => (order += src + "; "));
+      return order;
     }
   },
   methods: {
@@ -65,7 +68,21 @@ export default {
       this.$store.commit("setSubmitTitle", e.target.value);
     },
     setProp(prop, value) {
-      this.$store.commit("setProp", { prop: prop, value: value });
+      this.$store.commit("setProp", {
+        prop: prop,
+        value: value
+      });
+    },
+    selectSources(select, prop) {
+      var sources = [...select.options]
+        .filter(option => option.selected)
+        .map(option => option.value);
+      this.setProp(prop, sources);
+    },
+    isSelected(sid) {
+      if (!this.wid) return false;
+      for (let val of this.sources) if (val == sid) return true;
+      return false;
     },
     isSelectedWidget(type) {
       let value = false;
@@ -83,193 +100,234 @@ export default {
       for (let i = 0; i < collection.length; i++)
         selected.push(collection[i].label);
       this.$store.commit("setSelectedWidgetTypes", selected);
+    },
+    formatSource: src => {
+      return `${src.wid}:${src.type}:${src.phase}`;
     }
   }
 };
 </script>
 
 <template>
-  <div id="propertyWrapper">
-    <div id="propertyDrawer" :class="['propertyDrawer', { opened: isOpen }]">
-      <div id="propertyPanel">
-        <PropsMenu title="Phase" :openType="openType">
-          <label for="Phase_PhaseTitle">
-            Phase Title:
-            <br />
-            <input
-              id="Phase_PhaseTitle"
-              type="text"
-              :value="phaseTitle"
-              @input="setPhaseTitle"
-            />
-          </label>
-          <label for="Phase_SubmitTitle">
-            Submit Title:
-            <br />
-            <input
-              id="Phase_SubmitTitle"
-              type="text"
-              :value="submitTitle"
-              @input="setSubmitTitle"
-            />
-          </label>
-        </PropsMenu>
-        <PropsMenu title="Textfield" :openType="openType">
-          <label for="Props_Textfield">
-            Size (in characters):
-            <br />
-            <select
-              id="Props_Textfield"
-              :value="size"
-              @change="setProp('size', $event.target.value)"
+  <div id="propertyDrawer" :class="['propertyDrawer', { opened: isOpen }]">
+    <div id="propertyPanel">
+      <PropsMenu title="Phase" :openType="openType">
+        <label for="Phase_PhaseTitle">
+          Phase Title:
+          <br />
+          <input
+            id="Phase_PhaseTitle"
+            type="text"
+            :value="phaseTitle"
+            @input="setPhaseTitle"
+          />
+        </label>
+        <label for="Phase_SubmitTitle">
+          Submit Title:
+          <br />
+          <input
+            id="Phase_SubmitTitle"
+            type="text"
+            :value="submitTitle"
+            @input="setSubmitTitle"
+          />
+        </label>
+      </PropsMenu>
+      <PropsMenu title="Widget Selection" :openType="openType">
+        <label for="Props_Select">
+          Select:
+          <br />
+          <select
+            id="Props_Select"
+            multiple="multiple"
+            size="3"
+            @change="selectWidgets"
+          >
+            <option
+              v-for="w in getWidgets"
+              :value="w.type"
+              :key="w.type"
+              :selected="isSelectedWidget(w.type)"
             >
-              <option v-for="(size, index) in sizes" :value="size" :key="index">
-                {{ size }}
-              </option>
-            </select>
-          </label>
-          <label for="textfieldopt">
-            <input
-              id="textfieldopt"
-              type="checkbox"
-              :checked="optional"
-              @change="setProp('optional', $event.target.checked)"
-            />
-            Optional
-          </label>
-        </PropsMenu>
-        <PropsMenu title="Textarea" :openType="openType">
-          <label for="CFTextarea">
-            Carryforward Sources:
-            <br />
-            <select id="CFTextarea" multiple size="4">
-              <option
-                v-for="(source, index) in sources"
-                :value="source"
-                :key="index"
-              >
-                {{ source }}
-              </option>
-            </select>
-          </label>
-          <label for="CF_TextareaOrder">
-            Order:
-            <br />
-            <input
-              type="text"
-              :value="sources"
-              id="CF_TextareaOrder"
-              cols="30"
-              readonly="readonly"
-            />
-          </label>
-          <label for="textareaopt">
-            <input
-              id="textareaopt"
-              type="checkbox"
-              :checked="optional"
-              @change="setProp('optional', $event.target.checked)"
-            />
-            Optional
-          </label>
-        </PropsMenu>
-        <PropsMenu title="Select" :openType="openType">
-          <label for="Props_Select">
-            Options:
-            <br />
-            <input
-              id="Props_Select"
-              type="text"
-              :value="options"
-              @input="setProp('options', $event.target.value)"
-              placeholder="Names separated by ';'."
-            />
-          </label>
-          <label for="selectsize">
-            Size(visible rows):
-            <br />
-            <input
-              id="selectsize"
-              type="text"
+              {{ w.type }}
+            </option>
+          </select>
+        </label>
+      </PropsMenu>
+      <PropsMenu title="Textfield" :openType="openType">
+        <label for="Props_Textfield">
+          Size (in characters):
+          <br />
+          <select
+            id="Props_Textfield"
+            :value="size"
+            @change="setProp('size', $event.target.value)"
+          >
+            <option
+              v-for="(size, index) in textSizes"
               :value="size"
-              @input="setProp('size', $event.target.value)"
-            />
-          </label>
-          <label for="selectopt">
-            <input
-              id="selectopt"
-              type="checkbox"
-              :checked="optional"
-              @change="setProp('optional', e.target.checked)"
-            />
-            Optional
-          </label>
-        </PropsMenu>
-        <PropsMenu title="CarryForward" :openType="openType">
-          <label for="CF_Src">
-            Carryforward Sources:
-            <br />
-            <select id="CF_Src" multiple="multiple" size="4">
-              <option
-                v-for="(source, index) in sources"
-                :value="source"
-                :key="index"
-              >
-                {{ source }}
-              </option>
-            </select>
-          </label>
-          <label for="CF_Order">
-            Order:
-            <br />
-            <input
-              type="text"
-              :value="sources"
-              id="cfOrder"
-              cols="30"
-              readonly="readonly"
-            />
-          </label>
-        </PropsMenu>
-        <PropsMenu title="Media" :openType="openType">
-          <label for="Media_URL">
-            URL:
-            <br />
-            <input
-              id="Media_URL"
-              type="text"
-              value="url"
-              @input="setProp('url', $event.target.value)"
-            />
-          </label>
-        </PropsMenu>
-        <PropsMenu title="Widgets" :openType="openType">
-          <label for="Props_Select">
-            Select:
-            <br />
-            <select
-              id="Props_Select"
-              multiple="multiple"
-              size="4"
-              @change="selectWidgets"
+              :key="index"
             >
-              <option
-                v-for="w in getWidgets"
-                :value="w.type"
-                :key="w.type"
-                :selected="isSelectedWidget(w.type)"
-              >
-                {{ w.type }}
-              </option>
-            </select>
-          </label>
-        </PropsMenu>
-      </div>
-      <div v-on:click="toggleTab" id="drawerTab">
-        <span :class="{ rotate: isOpen }">
-          <img src="@/assets/img/triangle.png" />
-        </span>
-      </div>
+              {{ size }}
+            </option>
+          </select>
+        </label>
+        <label for="CFTextfield">
+          Carryforward Sources:
+          <br />
+          <select
+            id="CFTextfield"
+            multiple
+            size="3"
+            @change="selectSources($event.target, 'sources')"
+          >
+            <option
+              v-for="src in possibleSources"
+              :value="src.wid"
+              :key="src.wid"
+              :selected="isSelected(src.wid)"
+            >
+              {{ formatSource(src) }}
+            </option>
+          </select>
+        </label>
+        <label for="CF_TextfieldOrder">
+          Order:
+          <br />
+          <input
+            type="text"
+            :value="order"
+            id="CF_TextfieldOrder"
+            cols="30"
+            @change="setProp('sources', $event.target.value.split(';'))"
+          />
+        </label>
+        <label for="textfieldopt">
+          <input
+            id="textfieldopt"
+            type="checkbox"
+            :checked="optional"
+            @change="setProp('optional', $event.target.checked)"
+          />
+          Optional
+        </label>
+      </PropsMenu>
+      <PropsMenu title="Textarea" :openType="openType">
+        <label for="CFTextarea">
+          Carryforward Sources:
+          <br />
+          <select
+            id="CFTextarea"
+            multiple
+            size="3"
+            @change="selectSources($event.target, 'sources')"
+          >
+            <option
+              v-for="src in possibleSources"
+              :value="src.wid"
+              :key="src.wid"
+              :selected="isSelected(src.wid)"
+            >
+              {{ formatSource(src) }}
+            </option>
+          </select>
+        </label>
+        <label for="CF_TextareaOrder">
+          Order:
+          <br />
+          <input
+            type="text"
+            :value="order"
+            id="CF_TextareaOrder"
+            cols="30"
+            @change="setProp('sources', $event.target.value.split(';'))"
+          />
+        </label>
+        <label for="textareaopt">
+          <input
+            id="textareaopt"
+            type="checkbox"
+            :checked="optional"
+            @change="setProp('optional', $event.target.checked)"
+          />
+          Optional
+        </label>
+      </PropsMenu>
+      <PropsMenu title="Select" :openType="openType">
+        <label for="Props_Select">
+          Options:
+          <br />
+          <input
+            id="Props_Select"
+            type="text"
+            :value="options"
+            @input="setProp('options', $event.target.value)"
+            placeholder="Names separated by ';'."
+          />
+        </label>
+        <label for="selectsize">
+          Size(visible rows):
+          <br />
+          <input
+            id="selectsize"
+            type="text"
+            :value="size"
+            @input="setProp('size', $event.target.value)"
+          />
+        </label>
+        <label for="selectopt">
+          <input
+            id="selectopt"
+            type="checkbox"
+            :checked="optional"
+            @change="setProp('optional', e.target.checked)"
+          />
+          Optional
+        </label>
+      </PropsMenu>
+      <PropsMenu title="CarryForward" :openType="openType">
+        <label for="CF_Src">
+          Carryforward Sources:
+          <br />
+          <select id="CF_Src" multiple="multiple" size="3">
+            <option
+              v-for="src in possibleSources"
+              :value="src.id"
+              :key="src.id"
+            >
+              {{ formatSource(src) }}
+            </option>
+          </select>
+        </label>
+        <label for="CF_Order">
+          Order:
+          <br />
+          <input
+            type="text"
+            :value="order"
+            id="cfOrder"
+            cols="30"
+            readonly="readonly"
+          />
+        </label>
+      </PropsMenu>
+      <PropsMenu title="Media" :openType="openType">
+        <label for="Media_URL">
+          URL:
+          <br />
+          <input
+            id="Media_SRC"
+            type="text"
+            :value="src"
+            @input="setProp('src', $event.target.value)"
+          />
+        </label>
+      </PropsMenu>
+    </div>
+    <div v-on:click="toggleTab" id="drawerTab">
+      <span :class="{ rotate: isOpen }">
+        <img src="@/assets/img/triangle.png" />
+      </span>
     </div>
   </div>
 </template>
@@ -285,7 +343,7 @@ export default {
   top: 50px;
   left: -172px;
   padding: 0;
-  transition: all 1.0s ease;
+  transition: all 1s ease;
 }
 #propertyPanel {
   background-color: $bg-color;
@@ -307,14 +365,14 @@ export default {
   left: 170px;
   padding: 4px;
   transform: rotate(90deg);
-  transition-duration: 1.0s;
+  transition-duration: 1s;
 }
 .opened {
   left: 0px;
 }
 #drawerTab .rotate img {
   transform: rotate(-90deg);
-  transition-duration: 1.0s;
+  transition-duration: 1s;
 }
 .propertyPanel {
   position: absolute;

@@ -7,16 +7,22 @@ const getDefaultState = () => {
 };
 
 const responses = {
-  namespaced: true,
-  caseid: "weather",
-  phases: [
-    {
-      wid: "1",
-      locked: false,
-      responses: []
-    }
-  ],
+    namespaced: true,
+    caseid: "weather",
+    answers: {},
+    locked: {}
+  },
+  getters: {
+    getAnswer: state => wid => answers[wid],
+    isLocked: state => pid => locked[pid],
+  },
   mutations: {
+    setAnswer(wid, answer) {
+      answers[wid] = answer;
+    },
+    unlockPhase(pid) {
+      locked[pid] = false;
+    },
     resetState(state) {
       Object.assign(state, getDefaultState());
     }

@@ -30,10 +30,11 @@ const factory = {
           id: null,
           phase: null,
           rect: null,
-          sources: [],
           props: {
+            sources: [],
             size: 20,
-            optional: false
+            optional: false,
+            answers: ""
           }
         }
       },
@@ -188,9 +189,17 @@ const factory = {
       return state.tools;
     },
     makeNewWidget: state => info => {
-      var wdata = { wid: info.wid };
+      var wdata = { wid: info.wrec.id };
       var store = info.store;
-      info.widget = new state.widgets[info.type].constructor({ wdata, store });
+      var widget = new state.widgets[info.type].constructor({ wdata, store });
+      widget.$mount();
+      info.el = widget.$el;
+      info.layer.appendChild(info.el);
+      info.el.style = `left: ${info.left}px; top: ${info.top}px;`;
+      if (info.rect)
+        info.el.style += `width: ${info.rect.width}px; height: ${info.rect.height}px;`;
+      info.el.setAttribute("wid", info.wrec.id);
+      if (state.widgets[info.type].isDraggable) setDraggable(info.el, store);
     },
     getNewWidgetRecord: state => type => {
       var prototype = state.widgets[type].prototype;
@@ -219,4 +228,31 @@ const factory = {
   }
 };
 
+const setDraggable = function(widgetWrapper, store) {
+  widgetWrapper.onmousedown = function(e) {
+    var left = widgetWrapper.offsetLeft;
+    var top = widgetWrapper.offsetTop;
+    var width = widgetWrapper.offsetWidth;
+    var height = widgetWrapper.offsetHeight;
+    var offsetX = e.pageX - left;
+    var offsetY = e.pageY - top;
+
+    moveAt(e.pageX, e.pageY);
+
+    function moveAt(pageX, pageY) {
+      if (store.getters.currentRole === "designer")
+        widgetWrapper.style = `left: ${pageX - offsetX}px; top: ${pageY -
+          offsetY}px;`;
+    }
+
+    window.onmousemove = function(e) {
+      // move if not resizing
+      if (
+        widgetWrapper.offsetWidth == width &&
+        widgetWrapper.offsetHeight == height
+      )
+        moveAt(e.pageX, e.pageY);
+    };
+  };
+};
 export default factory;

@@ -19,6 +19,7 @@ const store = new Vuex.Store({
     phase: 0,
     widget: null,
     tool: "",
+    incomplete: [],
     phases: [
       {
         id: 0,
@@ -80,24 +81,15 @@ const store = new Vuex.Store({
     submitTitle: state => state.phases[state.phase].submit,
     // widget props
     size: state => wid => state.widgets[wid].props["size"],
+    answers: state => wid => state.widgets[wid].props["answers"],
     optional: state => wid => state.widgets[wid].props["optional"],
-    sources: state => wid => state.widgets[wid].props["sources"],
     url: state => wid => state.widgets[wid].props["url"],
     options: state => wid => state.widgets[wid].props["options"],
     src: state => wid => state.widgets[wid].props["src"],
-    carryforward: state => wid => {
-      if (state.role === "student") {
-        var result = "";
-        state.widgets[wid].props["sources"].forEach(
-          source => (result += source)
-        );
-        return result;
-      } else return "";
-    },
+    sources: state => wid => state.widgets[wid].props["sources"],
     possibleSources: state => {
       var sources = [];
-      Object.keys(state.widgets).forEach(id => {
-        let w = state.widgets[id];
+      Object.values(state.widgets).forEach(w => {
         if (
           w.phase < state.phase &&
           store.getters["factory/getWidgets"][w.type].isSource
@@ -113,7 +105,13 @@ const store = new Vuex.Store({
     },
     observations: state => state.tools.observations,
     comments: state => state.tools.comments,
-    resources: state => state.tools.resources
+    resources: state => state.tools.resources,
+    incomplete: state => wid => state.incomplete.includes(wid),
+    widgetIsLocked: state =>
+      state.role != "student" ||
+      !store.getters["responses/isActivePhase"](state.phase),
+    phaseIsLocked: state => pid =>
+      state.role === "student" && store.getters["responses/isFuturePhase"](pid)
   },
   mutations: {
     setState(state, newstate) {
@@ -153,42 +151,49 @@ const store = new Vuex.Store({
     setWidgetRect(state, rect) {
       state.widgets[state.widget].rect = rect;
     },
-    addWidget(state, info) {
-      info.wid = state.wcnt++;
-      var wrec = info.widgetRecord
-        ? info.widgetRecord
-        : factory.getters.getNewWidgetRecord(factory.state)(info.type);
-      wrec.id = info.wid;
-      wrec.phase = info.phase;
-      info.store = store;
-      Vue.set(state.widgets, wrec.id, wrec);
-      factory.getters.makeNewWidget(factory.state)(info);
-      info.widget.$mount();
-      var el = info.widget.$el;
-      info.layer.appendChild(el);
-      var left = info.event.pageX + 10;
-      var top = info.event.pageY - 70;
-      el.style = `left: ${left}px; top: ${top}px;`;
-      el.setAttribute("wid", info.wid);
-      if (factory.state.widgets[info.type].isDraggable) setDraggable(el, store);
-      eventBus.$emit("typeSelected", info.type);
-      store.commit("setCurrentWidget", info.wid);
+    validateResponses(state) {
+      state.incomplete = [];
+      Object.values(state.widgets).forEach(w => {
+        if (
+          w.phase == state.phase &&
+          !w.optional &&
+          !store.getters["responses/hasAnswer"](w.id)
+        )
+          state.incomplete.push(w.id);
+      });
+      if (state.incomplete.length == 0) {
+        store.commit("responses/unlockNextPhase");
+        state.phase++;
+        state.widget = null;
+      }
+    },
+    addNewWidget(state, info) {
+      if (!info.wrec)
+        info.wrec = store.getters["factory/getNewWidgetRecord"](info.type);
+      info.wrec.id = state.wcnt++;
+      info.wrec.phase = state.phase;
+      configureWidget(state, info);
+      eventBus.$emit("typeSelected", info.wrec.type);
+      store.commit("setCurrentWidget", info.wrec.id);
     },
     copyWidget(state, info) {
-      info.widgetRecord = store.getters.getWidgetRecord(info.wid);
-      info.type = info.widgetRecord.type;
-      store.commit("addWidget", info);
+      info.wrec = JSON.parse(JSON.stringify(state.widgets[info.wid]));
+      store.commit("addNewWidget", info);
     },
-    deleteWidget(state, key) {
-      delete state.widgets[key.wid];
+    rebuildWidget(state, info) {
+      info.wrec = store.getters.getWidgetRecord(info.wid);
+      configureWidget(state, info);
+    },
+    deleteWidget(state, wid) {
+      delete state.widgets[wid];
       store.commit("setCurrentWidget", null);
     },
     makeList(state, info) {
-      store.commit("addWidget", info);
+      store.commit("addNewWidget", info);
       populateList(state, info);
     },
     addObservation(state, text) {
-      var obs = factory.getters.getNewToolRecord(factory.state)("observations");
+      var obs = store.getters["factory/getNewToolRecord"]("observations");
       obs.id = state.tcnt++;
       obs.text = text;
       obs.phase = state.phase;
@@ -206,7 +211,18 @@ const store = new Vuex.Store({
       if (!state.tools[info.tool])
         Vue.set(state.tools, info.tool, JSON.parse(JSON.stringify(info.value)));
     },
-    /*
+    setFileName(state, filename) {
+      state.filename = filename;
+    }
+  },
+  actions: {
+    restartStudent() {
+      store.commit("responses/reset");
+      store.commit("setCurrentPhase", 0);
+      store.commit("setCurrentWidget", null);
+    }
+  }
+  /*
         for (let i = 0; i < state.phases.length; i++)
           Vue.set(
             state.phases[i].tools,
@@ -217,58 +233,36 @@ const store = new Vuex.Store({
     },
     /*
     addComment(state, text) {
-      state.phases[state.phase].tool.comments;
+      state.phases[state.phase].tool.comments;case content isprepared
     },
     addResource(state, url) {
       state.phases[state.phase].tool.resource;
     },
-    */
-    setFileName(state, filename) {
-      state.filename = filename;
-    }
-  }
+  */
 });
-
-const setDraggable = function(widgetWrapper, store) {
-  widgetWrapper.onmousedown = function(e) {
-    var left = widgetWrapper.offsetLeft;
-    var top = widgetWrapper.offsetTop;
-    var width = widgetWrapper.offsetWidth;
-    var height = widgetWrapper.offsetHeight;
-    var offsetX = e.pageX - left;
-    var offsetY = e.pageY - top;
-
-    moveAt(e.pageX, e.pageY);
-
-    function moveAt(pageX, pageY) {
-      if (store.getters.currentRole === "designer")
-        widgetWrapper.style = `left: ${pageX - offsetX}px; top: ${pageY -
-          offsetY}px;`;
-    }
-
-    window.onmousemove = function(e) {
-      // move if not resizing
-      if (
-        widgetWrapper.offsetWidth == width &&
-        widgetWrapper.offsetHeight == height
-      )
-        moveAt(e.pageX, e.pageY);
-    };
-  };
-};
-
+function configureWidget(state, info) {
+  Vue.set(state.widgets, info.wrec.id, info.wrec);
+  info.store = store;
+  store.getters["factory/makeNewWidget"](info);
+}
 function populateList(state, info) {
   var bullet = info.event.target;
   var firstLeft = bullet.offsetLeft;
-  //var list = makeWidget(info.type, firstLeft - 6, firstTop - 15);
-  var list = info.widget.$el.firstChild;
-  info.widget.$el.style.left = parseInt(bullet.style.left, 10) - 16 + "px";
-  info.widget.$el.style.top = parseInt(bullet.style.top, 10) + "px";
-  var subtype = info.type === "multiplechoice" ? "radio" : "checkbox";
+  var list = info.el.firstChild;
+  var left = parseInt(bullet.style.left, 10);
+  var top = parseInt(bullet.style.top, 10);
+  var subtype = "";
+  if (info.type === "multiplechoice") {
+    info.el.style = `left: ${left - 16}px; top: ${top}px;`;
+    subtype = "radio";
+  } else {
+    info.el.style = `left: ${left - 12}px; top: ${top - 4}px;`;
+    subtype = "checkbox";
+  }
   var nextLeft = firstLeft;
   var value = 1;
   var node = bullet;
-  var wid = info.widget.wid;
+  var wid = info.wid;
   while (nextLeft >= firstLeft) {
     if (nextLeft == firstLeft) {
       if (bullet.textContent != node.textContent) break;

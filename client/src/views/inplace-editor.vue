@@ -92,6 +92,7 @@ export default {
   font-size: 12px;
   div:first-child {
     display: inline-block;
+    cursor: pointer;
     float: left;
     margin: 2px 2px 0 2px;
   }
@@ -103,11 +104,11 @@ export default {
   }
 }
 .actions {
-  transition: transform 0.5 ease;
+  cursor: pointer;
 }
 .actions img {
   margin-right: 10px;
-  transform: rotate(0deg);
+  transition: transform 0.5 ease;
 }
 .actions.rotate img {
   transform: rotate(-90deg);

@@ -7,21 +7,39 @@ const getDefaultState = () => {
 };
 
 const responses = {
-    namespaced: true,
+  namespaced: true,
+  state: {
     caseid: "weather",
-    answers: {},
-    locked: {}
+    activePhase: 0,
+    answers: {}
   },
   getters: {
-    getAnswer: state => wid => answers[wid],
-    isLocked: state => pid => locked[pid],
+    getAnswer: state => wid => {
+      if (wid in state.answers) return state.answers[wid];
+      else return "";
+    },
+    hasAnswer: state => wid => wid in state.answers,
+    isCompletedPhase: state => pid => pid < state.activePhase,
+    isActivePhase: state => pid => pid == state.activePhase,
+    isFuturePhase: state => pid => pid > state.activePhase,
+    combineAnswers: state => sources => {
+      let content = "";
+      sources.forEach(wid => {
+        if (wid in state.answers) content += state.answers[wid] + "\n";
+      });
+      return content;
+    }
   },
   mutations: {
-    setAnswer(wid, answer) {
-      answers[wid] = answer;
+    saveAnswer(state, info) {
+      Vue.set(state.answers, info.wid, info.value);
     },
-    unlockPhase(pid) {
-      locked[pid] = false;
+    unlockNextPhase(state) {
+      state.activePhase++;
+    },
+    reset(state) {
+      state.activePhase = 0;
+      state.answers = {};
     },
     resetState(state) {
       Object.assign(state, getDefaultState());

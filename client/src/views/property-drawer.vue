@@ -23,22 +23,28 @@ export default {
     eventBus.$on("typeDeselected", () => (this.openType = ""));
   },
   computed: {
-    ...mapGetters(["selectedWidgetTypes", "phaseTitle", "submitTitle"]),
+    ...mapGetters([
+      "currentWidget",
+      "possibleSources",
+      "selectedWidgetTypes",
+      "phaseTitle",
+      "submitTitle"
+    ]),
     ...mapGetters("factory", ["getWidgets", "textSizes"]),
     wid() {
-      return this.$store.getters.currentWidget;
+      return this.currentWidget;
     },
     size() {
       if (!this.wid) return 20;
       return this.$store.getters.size(this.wid);
     },
+    answers() {
+      if (!this.wid) return "20";
+      return this.$store.getters.answers(this.wid);
+    },
     optional() {
       if (!this.wid) return false;
       return this.$store.getters.optional(this.wid);
-    },
-    sources() {
-      if (!this.wid) return [];
-      return this.$store.getters.sources(this.wid);
     },
     possibleSources() {
       return this.$store.getters.possibleSources;
@@ -51,10 +57,8 @@ export default {
       if (!this.wid) return [];
       return this.$store.getters.options(this.wid);
     },
-    order() {
-      var order = "";
-      if (this.sources) this.sources.forEach(src => (order += src + "; "));
-      return order;
+    sources() {
+      return this.$store.getters.sources(this.wid);
     }
   },
   methods: {
@@ -68,21 +72,23 @@ export default {
       this.$store.commit("setSubmitTitle", e.target.value);
     },
     setProp(prop, value) {
+      if (!this.wid) return;
       this.$store.commit("setProp", {
         prop: prop,
         value: value
       });
     },
     selectSources(select, prop) {
+      console.log(select.options);
       var sources = [...select.options]
         .filter(option => option.selected)
-        .map(option => option.value);
+        .map(option => parseInt(option.value, 10));
+      console.log(sources);
       this.setProp(prop, sources);
     },
     isSelected(sid) {
-      if (!this.wid) return false;
-      for (let val of this.sources) if (val == sid) return true;
-      return false;
+      if (!this.wid) return;
+      return this.sources.includes(sid);
     },
     isSelectedWidget(type) {
       let value = false;
@@ -101,9 +107,7 @@ export default {
         selected.push(collection[i].label);
       this.$store.commit("setSelectedWidgetTypes", selected);
     },
-    formatSource: src => {
-      return `${src.wid}:${src.type}:${src.phase}`;
-    }
+    formatSource: src => `${src.wid}:${src.type}:${src.phase}`
   }
 };
 </script>
@@ -172,6 +176,17 @@ export default {
             </option>
           </select>
         </label>
+        <label for="Textfield_Answers">
+          Answers
+          <br />
+          <input
+            id="Textfield_Answers"
+            type="text"
+            placeholder="dog;cat;parakeet"
+            :value="answers"
+            @input="setProp('answers', $event.target.value)"
+          />
+        </label>
         <label for="CFTextfield">
           Carryforward Sources:
           <br />
@@ -190,17 +205,6 @@ export default {
               {{ formatSource(src) }}
             </option>
           </select>
-        </label>
-        <label for="CF_TextfieldOrder">
-          Order:
-          <br />
-          <input
-            type="text"
-            :value="order"
-            id="CF_TextfieldOrder"
-            cols="30"
-            @change="setProp('sources', $event.target.value.split(';'))"
-          />
         </label>
         <label for="textfieldopt">
           <input
@@ -232,17 +236,6 @@ export default {
             </option>
           </select>
         </label>
-        <label for="CF_TextareaOrder">
-          Order:
-          <br />
-          <input
-            type="text"
-            :value="order"
-            id="CF_TextareaOrder"
-            cols="30"
-            @change="setProp('sources', $event.target.value.split(';'))"
-          />
-        </label>
         <label for="textareaopt">
           <input
             id="textareaopt"
@@ -262,7 +255,7 @@ export default {
             type="text"
             :value="options"
             @input="setProp('options', $event.target.value)"
-            placeholder="Names separated by ';'."
+            placeholder="dog;cat;parakeet"
           />
         </label>
         <label for="selectsize">
@@ -272,6 +265,7 @@ export default {
             id="selectsize"
             type="text"
             :value="size"
+            placeholder="4"
             @input="setProp('size', $event.target.value)"
           />
         </label>
@@ -289,26 +283,21 @@ export default {
         <label for="CF_Src">
           Carryforward Sources:
           <br />
-          <select id="CF_Src" multiple="multiple" size="3">
+          <select
+            id="CF_Src"
+            multiple="multiple"
+            size="3"
+            @change="selectSources($event.target, 'sources')"
+          >
             <option
               v-for="src in possibleSources"
-              :value="src.id"
-              :key="src.id"
+              :value="src.wid"
+              :key="src.wid"
+              :selected="isSelected(src.wid)"
             >
               {{ formatSource(src) }}
             </option>
           </select>
-        </label>
-        <label for="CF_Order">
-          Order:
-          <br />
-          <input
-            type="text"
-            :value="order"
-            id="cfOrder"
-            cols="30"
-            readonly="readonly"
-          />
         </label>
       </PropsMenu>
       <PropsMenu title="Media" :openType="openType">
@@ -319,6 +308,7 @@ export default {
             id="Media_SRC"
             type="text"
             :value="src"
+            placeholder="https://www.arizona.edu"
             @input="setProp('src', $event.target.value)"
           />
         </label>

@@ -1,5 +1,6 @@
 <script>
 import eventBus from "@/main";
+import { mapGetters } from "vuex";
 export default {
   name: "WidgetWrapper",
   data: function() {
@@ -15,9 +16,27 @@ export default {
       drawer.style.top = e.pageY - 120 + "px;";
     });
   },
+  computed: {
+    ...mapGetters(["widgetIsLocked", "currentRole", "currentWidget"]),
+    isActive() {
+      return this.active;
+    },
+    isSelected() {
+      return this.currentWidget == this.$parent.wid;
+    },
+    optional() {
+      return this.$store.getters.optional(this.$parent.wid);
+    },
+    incomplete() {
+      return this.$store.getters.incomplete(this.$parent.wid);
+    }
+  },
   methods: {
+    isRole(role) {
+      return this.currentRole === role;
+    },
     startDrag() {
-      if (!this.active || !this.isDesigner) return;
+      if (!this.active || !this.isRole("designer")) return;
       this.$store.commit("setCurrentWidget", this.$parent.wid);
       eventBus.$emit(
         "typeSelected",
@@ -26,48 +45,35 @@ export default {
     },
     stopDrag() {
       window.onmousemove = null;
-      if (!this.active || !this.isDesigner) return;
+      if (!this.active || !this.isRole("designer")) return;
       var rect = this.$el.getBoundingClientRect();
       this.$store.commit("setWidgetRect", rect);
     },
     copyDelete(e) {
-      if (!(this.active && this.isDesigner)) return;
+      if (!(this.active && this.isRole("designer"))) return;
       this.widgetLayer = e.target.parentElement;
       var r = this.$el.getBoundingClientRect();
       if (e.pageY < r.top && e.pageY > r.top - 16) {
         if (e.pageX > r.right - 32 && e.pageX < r.right - 16) {
-          var info = {
+          this.$store.commit("copyWidget", {
             wid: this.$parent.wid,
+            phase: this.$store.getters.currentPhase,
             layer: this.widgetLayer,
-            type: "",
-            event: e
-          };
-          this.$store.commit("copyWidget", info);
+            type: this.$store.getters.getWidgetRecord(this.$parent.wid).type,
+            left: e.pageX + 10,
+            top: e.pageY - 70
+          });
         } else {
           eventBus.$emit(
             "typeDeselected",
             this.$parent.$el.getAttribute("widgettype")
           );
-          this.$store.commit("deleteWidget", this.$parent.wid, e);
+          this.$store.commit("deleteWidget", this.$parent.wid);
           this.active = false;
         }
       } else {
         this.$store.commit("setCurrentWidget", this.$parent.wid);
       }
-    }
-  },
-  computed: {
-    isDesigner() {
-      return this.$store.getters.currentRole === "designer";
-    },
-    isActive() {
-      return this.active;
-    },
-    isSelected() {
-      return this.$store.getters.currentWidget == this.$parent.wid;
-    },
-    optional() {
-      return this.$store.getters.optional(this.$parent.wid);
     }
   }
 };
@@ -75,7 +81,11 @@ export default {
 <template>
   <div
     v-if="isActive"
-    :class="['widget', { user: !isDesigner }]"
+    :class="[
+      'widget',
+      { student: isRole('student') },
+      { incomplete: incomplete }
+    ]"
     wid=""
     @mousedown="startDrag"
     @mouseup="stopDrag"
@@ -85,11 +95,10 @@ export default {
     <span class="optional" v-show="optional">*optional</span>
   </div>
 </template>
-<style lang="scss">
+<style lang="scss" scoped>
 .widget {
   box-sizing: border-box;
   position: absolute;
-  cursor: pointer;
   padding: 0;
   margin: 0;
   min-width: 30px;
@@ -101,7 +110,7 @@ export default {
   top: 2px;
   left: 2px;
 }
-.widget.user::before {
+.widget.student::before {
   display: none;
 }
 .widget:hover::after {
@@ -110,8 +119,11 @@ export default {
   right: 0px;
   content: url(../../assets/img/widget.png);
 }
-.widget.user:hover::after {
+.widget.student:hover::after {
   display: none;
+}
+.widget.incomplete {
+  border: 1px dotted $invalid-color;
 }
 .optional {
   display: block;
@@ -122,57 +134,11 @@ export default {
   top: 0;
   margin: 0;
 }
-
 .selectimg {
   position: relative;
   left: 8px;
   top: 0px;
   float: left;
   transform: rotate(-90deg);
-}
-.widget[widgettype="radio"] {
-  position: absolute;
-}
-.widget[widgettype="radio"]:hover,
-.widget[widgettype="checkbox"]:hover {
-  background-image: none;
-}
-
-.widget[widgettype="carryforward"] {
-  background-color: white;
-}
-.carryforward {
-  width: 100px;
-  height: 24px;
-  resize: both;
-  overflow: auto;
-  border: 1px dashed black;
-}
-.media {
-  border: 1px solid black;
-}
-.widget[widgettype="media"] div {
-  background-color: white;
-  resize: both;
-  overflow: auto;
-}
-.widget iframe {
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-.widget[widgettype="list"] {
-  width: 75px;
-  height: 100px;
-  overflow: visible;
-}
-.widget[widgettype="list"]:hover {
-  background-image: url("/@/assets/img/widget-nocopy.png");
-}
-.widget[widgettype="checklist"]:hover {
-  background-image: url("/@/assets/img/widget-nocopy.png");
-}
-.widget .list input {
-  position: absolute;
 }
 </style>

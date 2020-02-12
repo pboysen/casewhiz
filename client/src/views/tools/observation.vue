@@ -18,7 +18,7 @@ export default {
 
 <template>
   <div class="observation">
-    <inp
+    <InplaceEditor></InplaceEditor>
   </div>
 </template>
 

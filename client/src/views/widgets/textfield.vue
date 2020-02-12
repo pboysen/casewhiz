@@ -1,5 +1,6 @@
 <script>
 import WidgetWrapper from "@/views/widgets/widget-wrapper.vue";
+import { mapGetters } from "vuex";
 export default {
   name: "Textfield",
   data: function() {
@@ -11,11 +12,23 @@ export default {
     WidgetWrapper
   },
   computed: {
+    ...mapGetters(["widgetIsLocked", "currentRole"]),
+    value() {
+      return this.$store.getters["responses/getAnswer"](this.wid);
+    },
     size() {
       return this.$store.getters.size(this.wid);
     },
-    isDesigner() {
-      return this.$store.getters.currentRole === "designer";
+    isStudent() {
+      return this.currentRole === "student";
+    }
+  },
+  methods: {
+    saveAnswer(e) {
+      this.$store.commit("responses/saveAnswer", {
+        wid: this.wid,
+        value: e.target.value
+      });
     }
   }
 };
@@ -25,18 +38,20 @@ export default {
     <input
       type="text"
       :size="size"
-      :class="['textfield', { user: !isDesigner }]"
+      :value="value"
+      :class="['textfield', { student: isStudent }]"
+      :readonly="widgetIsLocked"
+      @input="saveAnswer($event)"
     />
   </WidgetWrapper>
 </template>
 <style lang="scss">
-.textfield {
-  cursor: default;
-  pointer-events: none;
+.widget input {
+  font-size: $small-font;
+  cursor: grab;
   border-radius: 0;
 }
-.textfield.user {
+.widget.student input {
   cursor: text;
-  pointer-events: auto;
 }
 </style>

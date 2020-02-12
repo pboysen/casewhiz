@@ -12,9 +12,10 @@ export default {
         phase: this.$store.getters.currentPhase,
         type: type,
         layer: this.layer,
-        event: event
+        left: event.pageX + 10,
+        top: event.pageY - 70
       };
-      this.$store.commit("addWidget", info);
+      this.$store.commit("addNewWidget", info);
     }
   },
   computed: {

@@ -21,14 +21,14 @@ export default {
     });
   },
   computed: {
-    ...mapGetters(["phaseObservations", "allObservations"])
+    ...mapGetters(["phaseObservations", "observations"])
   }
 };
 </script>
 
 <template>
   <div class="observations">
-    <div class="observation" v-for="obs in allObservations" :key="obs.id">
+    <div class="observation" v-for="obs in observations" :key="obs.id">
       <InplaceEditor :obs="obs"></InplaceEditor>
     </div>
     <ul class="observationHelp">

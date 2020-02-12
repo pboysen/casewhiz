@@ -4,16 +4,31 @@ import { mapGetters } from "vuex";
 export default {
   name: "SubmitBar",
   methods: {
-    submit: function() {}
+    submit: function() {
+      this.$store.commit("validateResponses");
+    }
   },
   computed: {
-    ...mapGetters(["submitTitle"])
+    ...mapGetters(["submitTitle", "currentPhase", "currentRole"]),
+    disabled() {
+      return (
+        this.currentRole === "student" &&
+        this.$store.getters["responses/isCompletedPhase"](this.currentPhase)
+      );
+    }
   }
 };
 </script>
+
 <template>
   <div id="submit-panel">
-    <button @click="submit">{{ submitTitle }}</button>
+    <button
+      v-if="currentRole === 'student'"
+      @click="submit"
+      :disabled="disabled"
+    >
+      {{ submitTitle }}
+    </button>
   </div>
 </template>
 <style lang="scss" scoped>
@@ -24,8 +39,6 @@ export default {
   width: 100%;
   box-sizing: border-box;
   text-align: center;
-  background-color: $bg-color;
-  border: 1px solid $border-color;
 }
 #submit-panel button {
   font-size: $small-font;

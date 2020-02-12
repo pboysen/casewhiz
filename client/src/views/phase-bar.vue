@@ -20,6 +20,9 @@ export default {
   methods: {
     setCurrentPhase(phase) {
       this.$store.commit("setCurrentPhase", phase);
+    },
+    phaseIsLocked(pid) {
+      return this.$store.getters.phaseIsLocked(pid);
     }
   },
   computed: {
@@ -37,6 +40,7 @@ export default {
         :id="phase.id"
         @click="setCurrentPhase(index)"
         :class="['phase-button', { active: currentPhase == index }]"
+        :disabled="phaseIsLocked(phase.id)"
       >
         {{ phase.title }}
       </button>
@@ -69,6 +73,12 @@ export default {
 }
 .phase-button:hover {
   color: $select-color;
+}
+.phase-button:disabled:hover {
+  color: gray;
+}
+.phase-button:disabled {
+  color: gray;
 }
 .active {
   color: $select-color;

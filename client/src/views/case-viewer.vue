@@ -87,8 +87,8 @@ export default {
         :key="phase.id"
       />
     </div>
-    <PropertyDrawer v-if="currentRole == 'designer'"></PropertyDrawer>
-    <SubmitBar v-if="currentRole === 'student'"></SubmitBar>
+    <PropertyDrawer v-show="currentRole == 'designer'"></PropertyDrawer>
+    <SubmitBar></SubmitBar>
   </div>
 </template>
 }

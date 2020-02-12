@@ -1,5 +1,6 @@
 <script>
 import WidgetWrapper from "@/views/widgets/widget-wrapper.vue";
+import { mapGetters } from "vuex";
 export default {
   name: "Carryforward",
   data: function() {
@@ -11,15 +12,20 @@ export default {
     WidgetWrapper
   },
   computed: {
+    ...mapGetters(["currentRole"]),
     carryforward() {
-      return this.$store.getters.carryforward(this.wid);
+      var sources = this.$store.getters.sources(this.wid);
+      return this.$store.getters["responses/combineAnswers"](sources);
+    },
+    isStudent() {
+      return this.currentRole === "student";
     }
   }
 };
 </script>
 <template>
-  <WidgetWrapper widgettype="select">
-    <div class="carryforward">
+  <WidgetWrapper widgettype="carryforward">
+    <div :class="['carryforward', { student: isStudent }]">
       {{ carryforward }}
     </div>
   </WidgetWrapper>
@@ -30,10 +36,17 @@ export default {
   background-color: white;
 }
 .carryforward {
-  width: 100px;
-  height: 24px;
+  cursor: grab;
+  min-width: 100px;
+  min-height: 24px;
   resize: both;
   overflow: auto;
+  font-size: $txt-font;
   border: 1px dashed black;
+}
+.carryforward.student {
+  cursor: pointer;
+  border: 0;
+  resize: none;
 }
 </style>

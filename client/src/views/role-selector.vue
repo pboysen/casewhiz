@@ -1,8 +1,17 @@
 <script>
+import { mapGetters } from "vuex";
 export default {
   name: "RoleSelector",
+  computed: {
+    ...mapGetters(["currentRole"])
+  },
   methods: {
     setRole: function(role) {
+      if (role === "newstudent") {
+        this.$store.dispatch("restartStudent");
+        document.getElementById("role").value = "student";
+        return;
+      }
       this.$store.commit("setCurrentRole", role);
     }
   }
@@ -11,10 +20,15 @@ export default {
 <template>
   <div id="roles">
     <span>Role: </span>
-    <select id="role" @change="setRole($event.target.value)">
+    <select
+      id="role"
+      :value="currentRole"
+      @change="setRole($event.target.value)"
+    >
       <option value="designer">Designer</option>
       <option value="instructor">Instructor</option>
       <option value="student">Student</option>
+      <option value="newstudent">New Student</option>
     </select>
   </div>
 </template>

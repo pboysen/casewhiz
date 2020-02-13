@@ -10,7 +10,7 @@ export default {
     };
   },
   mounted() {
-    eventBus.$on("loadDefault", url => this.getCaseFile(url));
+    eventBus.$on("loadDefault", url => this.getPDFFile(url));
   },
   methods: {
     importIt: function(e) {
@@ -40,10 +40,8 @@ export default {
       }
       if (files.length == 1) {
         var file = files[0];
-        if (file.type === "application/pdf") {
-          this.currentFile = file;
-          eventBus.$emit("loadDocument", file.name);
-        } else if (
+        if (file.type === "application/pdf") this.getPDFFile(file);
+        else if (
           file.type === "application/case" ||
           file.name.endsWith(".case")
         )
@@ -52,12 +50,9 @@ export default {
       } else return "Please drop only one file.";
       return "";
     },
-    getFileBlob(file, cb) {
-      var reader = new FileReader();
-      reader.onload = function() {
-        cb(reader.result);
-      };
-      reader.readAsArrayBuffer(file);
+    getPDFFile(file) {
+      this.currentFile = file;
+      eventBus.$emit("loadDocument", file.name);
     },
     getCaseFile(file) {
       this.currentFile = file;
@@ -76,6 +71,13 @@ export default {
         };
         reader.readAsText(new Blob([blob.slice(4, len + 4)]));
       });
+    },
+    getFileBlob(file, cb) {
+      var reader = new FileReader();
+      reader.onload = function() {
+        cb(reader.result);
+      };
+      reader.readAsArrayBuffer(file);
     },
     publishIt() {
       var input = document.getElementById("publishFile");

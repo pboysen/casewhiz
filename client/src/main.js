@@ -4,7 +4,7 @@ import App from "./App.vue";
 import store from "./store";
 import router from "./router";
 
-Vue.config.productionTip = false;
+Vue.config.productionTip = true;
 Vue.config.devtools = true;
 Vue.use(Vuex);
 

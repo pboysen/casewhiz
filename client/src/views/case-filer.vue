@@ -9,6 +9,9 @@ export default {
       menu: ""
     };
   },
+  mounted() {
+    eventBus.$on("loadDefault", url => this.getCaseFile(url));
+  },
   methods: {
     importIt: function(e) {
       e.stopPropagation();
@@ -43,24 +46,9 @@ export default {
         } else if (
           file.type === "application/case" ||
           file.name.endsWith(".case")
-        ) {
-          this.currentFile = file;
-          this.getFileBlob(file, function(blob) {
-            var view = new DataView(blob);
-            var len = view.getUint32(0);
-            var reader = new FileReader();
-            var fileName = file.name.split(".")[0];
-            reader.onload = function() {
-              localStorage.setItem(fileName + ".pdf", reader.result);
-              reader.onload = function() {
-                eventBus.$emit("loadDocument", reader.result);
-              };
-              var pdfData = new Blob([blob.slice(len + 4)]);
-              reader.readAsDataURL(pdfData);
-            };
-            reader.readAsText(new Blob([blob.slice(4, len + 4)]));
-          });
-        } else return "Only PDF and CASE files can be read.";
+        )
+          this.getCaseFile(file);
+        else return "Only PDF and CASE files can be read.";
       } else return "Please drop only one file.";
       return "";
     },
@@ -70,6 +58,24 @@ export default {
         cb(reader.result);
       };
       reader.readAsArrayBuffer(file);
+    },
+    getCaseFile(file) {
+      this.currentFile = file;
+      this.getFileBlob(file, function(blob) {
+        var view = new DataView(blob);
+        var len = view.getUint32(0);
+        var reader = new FileReader();
+        var fileName = file.name.split(".")[0];
+        reader.onload = function() {
+          localStorage.setItem(fileName + ".pdf", reader.result);
+          reader.onload = function() {
+            eventBus.$emit("loadDocument", reader.result);
+          };
+          var pdfData = new Blob([blob.slice(len + 4)]);
+          reader.readAsDataURL(pdfData);
+        };
+        reader.readAsText(new Blob([blob.slice(4, len + 4)]));
+      });
     },
     publishIt() {
       var input = document.getElementById("publishFile");

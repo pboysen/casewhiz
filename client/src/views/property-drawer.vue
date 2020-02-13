@@ -79,11 +79,9 @@ export default {
       });
     },
     selectSources(select, prop) {
-      console.log(select.options);
       var sources = [...select.options]
         .filter(option => option.selected)
         .map(option => parseInt(option.value, 10));
-      console.log(sources);
       this.setProp(prop, sources);
     },
     isSelected(sid) {

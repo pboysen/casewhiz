@@ -10,10 +10,10 @@ export default {
     };
   },
   mounted() {
-    eventBus.$on("loadDefault", url => this.getPDFFile(url));
+    eventBus.$on("loadDefault", url => this.getCaseFile(url));
   },
   methods: {
-    importIt: function(e) {
+    importIt(e) {
       e.stopPropagation();
       e.preventDefault();
       var msg = this.dropHandler(e, function(newstate) {
@@ -52,7 +52,12 @@ export default {
     },
     getPDFFile(file) {
       this.currentFile = file;
-      eventBus.$emit("loadDocument", file.name);
+      eventBus.$emit("loadDocument", {
+        url: file.name,
+        cb: function setCaseState() {
+          this.$store.commit("setCurrentPhase", 0);
+        }
+      });
     },
     getCaseFile(file) {
       this.currentFile = file;
@@ -60,11 +65,16 @@ export default {
         var view = new DataView(blob);
         var len = view.getUint32(0);
         var reader = new FileReader();
-        var fileName = file.name.split(".")[0];
+        var that = this;
         reader.onload = function() {
-          localStorage.setItem(fileName + ".pdf", reader.result);
+          var caseState = JSON.parse(reader.result);
           reader.onload = function() {
-            eventBus.$emit("loadDocument", reader.result);
+            eventBus.$emit("loadDocument", {
+              url: reader.result,
+              cb: function setCaseState() {
+                that.$store.commit("resetState", caseState);
+              }
+            });
           };
           var pdfData = new Blob([blob.slice(len + 4)]);
           reader.readAsDataURL(pdfData);
@@ -83,7 +93,7 @@ export default {
       var input = document.getElementById("publishFile");
       var msg = this.publish(input.value);
       var err = document.getElementById("puberror");
-      if (msg.length == 0) {
+      if (msg === "") {
         this.menu = "";
         err.style.display = "none";
       } else {
@@ -92,10 +102,11 @@ export default {
       }
     },
     publish(fileName) {
-      if (!this.currentFile) return "No current file to publish.";
-      if (fileName.length == 0) "The filename is missing.";
+      if (!this.currentFile) return "Import a file first.";
+      if (fileName === "") return "Enter a file name.";
+      var that = this;
       this.getFileBlob(this.currentFile, function(blob) {
-        var json = {}; //copy phase layout from vuex
+        var json = that.$store.getters.copyState;
         var lenBuffer = new ArrayBuffer(4);
         var view = new DataView(lenBuffer);
         view.setUint32(0, json.length);
@@ -107,6 +118,7 @@ export default {
         a.download = fileName + ".case";
         a.click();
         URL.revokeObjectURL(a.href);
+        return "";
       });
     }
   }

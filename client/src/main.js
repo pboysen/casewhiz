@@ -4,7 +4,7 @@ import App from "./App.vue";
 import store from "./store";
 import router from "./router";
 
-Vue.config.productionTip = true;
+Vue.config.productionTip = false;
 Vue.config.devtools = true;
 Vue.use(Vuex);
 
@@ -16,4 +16,7 @@ new Vue({
   router,
   render: h => h(App)
 }).$mount("#app");
-eventBus.$emit("loadDocument", "Making the Case.pdf");
+
+eventBus.$emit("loadDocument", {
+  url: "Making the Case.pdf"
+});

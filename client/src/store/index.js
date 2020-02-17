@@ -6,37 +6,17 @@ import eventBus from "@/main";
 
 Vue.use(Vuex);
 
-const store = new Vuex.Store({
-  modules: {
-    factory,
-    responses
-  },
-  state: {
-    filename: "test.pdf",
+const getDefaultState = () => {
+  return {
+    filename: "",
     wcnt: 1,
     tcnt: 1,
     role: "designer",
-    phase: 0,
+    phase: -1,
     widget: null,
     tool: "",
     incomplete: [],
-    phases: [
-      {
-        id: 0,
-        title: "phase 1",
-        submit: "Submit"
-      },
-      {
-        id: 1,
-        title: "phase 2",
-        submit: "Submit"
-      },
-      {
-        id: 2,
-        title: "phase 3",
-        submit: "Submit"
-      }
-    ],
+    phases: [],
     widgets: {},
     tools: {},
     selectedWidgetTypes: [
@@ -49,7 +29,15 @@ const store = new Vuex.Store({
       "checklist"
     ],
     selectedToolTypes: ["Observations", "Comments"]
+  };
+};
+
+const store = new Vuex.Store({
+  modules: {
+    factory,
+    responses
   },
+  state: getDefaultState(),
   getters: {
     currentCase: state => state,
     currentRole: state => state.role,
@@ -77,8 +65,8 @@ const store = new Vuex.Store({
     getWidgetRecord: state => wid => state.widgets[wid],
     selectedTools: state => state.selectedTools,
     phaseTitle: state => state.phases[state.phase].title,
-    phaseTitleById: state => pid => state.phases[pid].title,
     submitTitle: state => state.phases[state.phase].submit,
+    phaseTitleById: state => pid => state.phases[pid].title,
     // widget props
     size: state => wid => state.widgets[wid].props["size"],
     answers: state => wid => state.widgets[wid].props["answers"],
@@ -111,14 +99,31 @@ const store = new Vuex.Store({
       state.role != "student" ||
       !store.getters["responses/isActivePhase"](state.phase),
     phaseIsLocked: state => pid =>
-      state.role === "student" && store.getters["responses/isFuturePhase"](pid)
+      state.role === "student" && store.getters["responses/isFuturePhase"](pid),
+    copyState: state => {
+      store.commit("responses/resetDefaultState");
+      return JSON.stringify(state);
+    }
   },
   mutations: {
-    setState(state, newstate) {
-      Object.assign(state, newstate);
-      store.dispatch("factory/resetState");
-      store.dispatch("responses/resetState");
+    setState(state, newState) {
+      Object.assign(state, newState);
       store.commit("setCurrentPhase", 0);
+    },
+    setDefaultState(state) {
+      Object.assign(state, getDefaultState());
+      store.commit("factory/setDefaultState");
+      store.commit("responses/setDefaultState");
+    },
+    addPhases(state, nphases) {
+      var phases = [];
+      for (var i = 0; i < nphases; i++)
+        phases.push({
+          id: i,
+          title: "phase " + (i + 1),
+          submit: "Submit"
+        });
+      Vue.set(state, "phases", phases);
     },
     setCurrentPhase(state, n) {
       state.widget = null;
@@ -177,7 +182,7 @@ const store = new Vuex.Store({
       store.commit("setCurrentWidget", info.wrec.id);
     },
     copyWidget(state, info) {
-      info.wrec = JSON.parse(JSON.stringify(state.widgets[info.wid]));
+      info.wrec = jsonCopy(state.widgets[info.wid]);
       store.commit("addNewWidget", info);
     },
     rebuildWidget(state, info) {
@@ -187,10 +192,6 @@ const store = new Vuex.Store({
     deleteWidget(state, wid) {
       delete state.widgets[wid];
       store.commit("setCurrentWidget", null);
-    },
-    makeList(state, info) {
-      store.commit("addNewWidget", info);
-      populateList(state, info);
     },
     addObservation(state, text) {
       var obs = store.getters["factory/getNewToolRecord"]("observations");
@@ -217,7 +218,7 @@ const store = new Vuex.Store({
   },
   actions: {
     restartStudent() {
-      store.commit("responses/reset");
+      store.commit("responses/resetDefaultState");
       store.commit("setCurrentPhase", 0);
       store.commit("setCurrentWidget", null);
     }
@@ -240,49 +241,12 @@ const store = new Vuex.Store({
     },
   */
 });
+function jsonCopy(obj) {
+  return JSON.parse(JSON.stringify(obj));
+}
 function configureWidget(state, info) {
   Vue.set(state.widgets, info.wrec.id, info.wrec);
   info.store = store;
   store.getters["factory/makeNewWidget"](info);
 }
-function populateList(state, info) {
-  var bullet = info.event.target;
-  var firstLeft = bullet.offsetLeft;
-  var list = info.el.firstChild;
-  var left = parseInt(bullet.style.left, 10);
-  var top = parseInt(bullet.style.top, 10);
-  var subtype = "";
-  if (info.type === "multiplechoice") {
-    info.el.style = `left: ${left - 16}px; top: ${top}px;`;
-    subtype = "radio";
-  } else {
-    info.el.style = `left: ${left - 12}px; top: ${top - 4}px;`;
-    subtype = "checkbox";
-  }
-  var nextLeft = firstLeft;
-  var value = 1;
-  var node = bullet;
-  var wid = info.wid;
-  while (nextLeft >= firstLeft) {
-    if (nextLeft == firstLeft) {
-      if (bullet.textContent != node.textContent) break;
-      var input = document.createElement("input");
-      input.name = subtype === "radio" ? `mc${wid}` : `cl${wid}-${value}`;
-      input.type = subtype;
-      input.value = value++;
-      list.appendChild(input);
-    }
-    node = node.nextElementSibling;
-    nextLeft = node.offsetLeft;
-  }
-}
-
-/*
-let initialState = {
-  store: store,
-  factory: factory,
-  responses: responses
-};
-console.log(initialState);
-*/
 export default store;

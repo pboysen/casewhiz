@@ -2,17 +2,18 @@ import Vue from "vue";
 import Vuex from "vuex";
 
 Vue.use(Vuex);
+
 const getDefaultState = () => {
-  return responses.state;
+  return {
+    caseid: "weather",
+    activePhase: 0,
+    answers: {}
+  };
 };
 
 const responses = {
   namespaced: true,
-  state: {
-    caseid: "weather",
-    activePhase: 0,
-    answers: {}
-  },
+  state: getDefaultState(),
   getters: {
     getAnswer: state => wid => {
       if (wid in state.answers) return state.answers[wid];
@@ -37,17 +38,11 @@ const responses = {
     unlockNextPhase(state) {
       state.activePhase++;
     },
-    reset(state) {
-      state.activePhase = 0;
-      state.answers = {};
+    resetState(state, newState) {
+      Object.assign(state, newState);
     },
-    resetState(state) {
+    setDefaultState(state) {
       Object.assign(state, getDefaultState());
-    }
-  },
-  actions: {
-    resetState({ commit }) {
-      commit("resetState");
     }
   }
 };

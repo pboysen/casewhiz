@@ -4,6 +4,7 @@ import PhaseBar from "@/views/phase-bar.vue";
 import PropertyDrawer from "@/views/property-drawer.vue";
 import PhaseViewer from "@/views/phase-viewer.vue";
 import SubmitBar from "@/views/submit-bar.vue";
+import { mapGetters } from "vuex";
 export default {
   name: "CaseViewer",
   components: {
@@ -15,62 +16,32 @@ export default {
   data: function() {
     return {
       url: "",
-      pdf: null,
-      case: this.$store.state
+      pdf: null
     };
   },
   mounted() {
-    eventBus.$on("loadDocument", url => this.getCase(url));
+    eventBus.$on("loadDocument", url => this.loadDocument(url));
   },
   methods: {
-    getCase(url) {
+    loadDocument(url) {
       this.url = url;
-      this.$store.commit("setCurrentPhase", 0);
       import("pdfjs-dist/webpack").then(pdfjs => {
+        this.$store.commit("setDefaultState");
         var loadingTask = pdfjs.getDocument(url);
         loadingTask.promise.then(pdf => {
           this.pdf = pdf;
-          this.case = JSON.parse(localStorage.getItem(url));
-          if (!this.case) this.case = this.getNewCase(url, pdf.numPages);
-          this.$store.commit("setState", this.case);
+          this.$store.commit("addPhases", pdf.numPages);
         });
       });
-    },
-    getNewCase(url, nphases) {
-      var phases = [];
-      for (var i = 0; i < nphases; i++)
-        phases.push({
-          id: i,
-          title: "phase " + (i + 1),
-          submit: "Submit",
-          widgets: {},
-          tools: {}
-        });
-      return {
-        filename: url,
-        wcnt: 1,
-        role: "designer",
-        phase: 0,
-        tool: 0,
-        widget: null,
-        selectedWidgetTypes: [
-          "textfield",
-          "textarea",
-          "select",
-          "carryforward",
-          "media"
-        ],
-        selectedToolTypes: ["Resources", "Comments", "Observations"],
-        phases: phases
-      };
     }
   },
   computed: {
+    ...mapGetters(["currentRole", "currentPhase", "getPhases"]),
     getPDF() {
       return this.pdf;
     },
-    currentRole() {
-      return this.$store.getters.currentRole;
+    hasPhases() {
+      return this.getPhases.length > 0 && this.currentPhase > -1;
     }
   }
 };
@@ -80,14 +51,15 @@ export default {
     <PhaseBar></PhaseBar>
     <div id="phase-container">
       <PhaseViewer
-        v-for="(phase, index) in this.case.phases"
+        v-for="(phase, index) in getPhases"
         :pdf="getPDF"
         :pindex="index"
         :scale="1.0"
         :key="phase.id"
       />
     </div>
-    <PropertyDrawer v-show="currentRole == 'designer'"></PropertyDrawer>
+    <PropertyDrawer v-if="currentRole == 'designer' && hasPhases">
+    </PropertyDrawer>
     <SubmitBar></SubmitBar>
   </div>
 </template>
@@ -98,6 +70,7 @@ export default {
   position: relative;
   flex: 2 1 auto;
   height: 100%;
+  min-height: 350px;
   min-width: 80%;
   border-right: 1px solid $border-color;
 }

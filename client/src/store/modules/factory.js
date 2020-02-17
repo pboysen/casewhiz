@@ -10,12 +10,7 @@ import multiplechoice from "@/views/widgets/multiplechoice.vue";
 Vue.use(Vuex);
 
 const getDefaultState = () => {
-  return factory.state;
-};
-
-const factory = {
-  namespaced: true,
-  state: {
+  return {
     widgets: {
       textfield: {
         type: "textfield",
@@ -180,16 +175,17 @@ const factory = {
         useRole: "instructor"
       }
     }
-  },
+  };
+};
+
+const factory = {
+  namespaced: true,
+  state: getDefaultState(),
   getters: {
-    getWidgets: state => {
-      return state.widgets;
-    },
-    getTools: state => {
-      return state.tools;
-    },
+    getWidgets: state => state.widgets,
+    getTools: state => state.tools,
     makeNewWidget: state => info => {
-      var wdata = { wid: info.wrec.id };
+      var wdata = { wid: info.wrec.id, event: info.event };
       var store = info.store;
       var widget = new state.widgets[info.type].constructor({ wdata, store });
       widget.$mount();
@@ -217,13 +213,11 @@ const factory = {
     }
   },
   mutations: {
-    resetState(state) {
+    setState(state, newState) {
+      Object.assign(state, newState);
+    },
+    setDefaultState(state) {
       Object.assign(state, getDefaultState());
-    }
-  },
-  actions: {
-    resetState({ commit }) {
-      commit("resetState");
     }
   }
 };
@@ -255,4 +249,5 @@ const setDraggable = function(widgetWrapper, store) {
     };
   };
 };
+
 export default factory;

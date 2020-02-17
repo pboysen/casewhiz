@@ -27,9 +27,15 @@ export default {
       showMenu: false
     };
   },
+  mounted() {
+    if (this.pindex == 0) {
+      this.$store.commit("setCurrentPhase", 0);
+      this.getPhase();
+    }
+  },
   methods: {
     getPhase() {
-      if (this.pdf && this.$el) {
+      if (this.pdf) {
         var container = this.$el.firstChild;
         while (container.lastChild) container.removeChild(container.lastChild);
         var that = this;
@@ -75,20 +81,24 @@ export default {
         if (!this.widgetLayer) this.widgetLayer = e.target;
         switch (e.target.textContent) {
           case "•": {
-            this.$store.commit("makeList", {
+            this.$store.commit("addNewWidget", {
               wid: null,
               type: "multiplechoice",
               layer: this.widgetLayer,
-              event: event
+              event: event,
+              left: event.pageX - 30,
+              top: event.pageY - 100
             });
             break;
           }
           case "▪": {
-            this.$store.commit("makeList", {
+            this.$store.commit("addNewWidget", {
               wid: null,
               type: "checklist",
               layer: this.widgetLayer,
-              event: event
+              event: event,
+              left: event.pageX - 30,
+              top: event.pageY - 100
             });
             break;
           }
@@ -151,7 +161,7 @@ export default {
   min-height: 270px;
 }
 .widgetLayer {
-  position: absolute;
+  position: relative;
   left: 0;
   top: 0;
   line-height: 16px;

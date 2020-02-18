@@ -18,7 +18,11 @@ export default {
       if (ans != "") return ans;
       else {
         var sources = this.$store.getters.sources(this.wid);
-        return this.$store.getters["responses/combineAnswers"](sources);
+        if (sources.length > 0)
+          return this.$store.getters["responses/combineAnswers"](sources);
+        else {
+          return "";
+        }
       }
     },
     isStudent() {

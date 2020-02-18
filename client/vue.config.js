@@ -1,5 +1,5 @@
 module.exports = {
-  publicPath: "/",
+  publicPath: "/springbuck/",
   css: {
     loaderOptions: {
       scss: {

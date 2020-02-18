@@ -68,13 +68,20 @@ const store = new Vuex.Store({
     submitTitle: state => state.phases[state.phase].submit,
     phaseTitleById: state => pid => state.phases[pid].title,
     // widget props
-    size: state => wid => state.widgets[wid].props["size"],
-    answers: state => wid => state.widgets[wid].props["answers"],
-    optional: state => wid => state.widgets[wid].props["optional"],
-    url: state => wid => state.widgets[wid].props["url"],
-    options: state => wid => state.widgets[wid].props["options"],
-    src: state => wid => state.widgets[wid].props["src"],
-    sources: state => wid => state.widgets[wid].props["sources"],
+    size: state => wid =>
+      isOk(state, wid) ? state.widgets[wid].props["size"] : 20,
+    answers: state => wid =>
+      isOk(state, wid) ? state.widgets[wid].props["answers"] : "",
+    optional: state => wid =>
+      isOk(state, wid) ? state.widgets[wid].props["optional"] : false,
+    url: state => wid =>
+      isOk(state, wid) ? state.widgets[wid].props["url"] : "",
+    options: state => wid =>
+      isOk(state, wid) ? state.widgets[wid].props["options"] : "",
+    src: state => wid =>
+      isOk(state, wid) ? state.widgets[wid].props["src"] : "",
+    sources: state => wid =>
+      isOk(state, wid) ? state.widgets[wid].props["sources"] : "",
     possibleSources: state => {
       var sources = [];
       Object.values(state.widgets).forEach(w => {
@@ -190,8 +197,8 @@ const store = new Vuex.Store({
       configureWidget(state, info);
     },
     deleteWidget(state, wid) {
-      delete state.widgets[wid];
       store.commit("setCurrentWidget", null);
+      delete state.widgets[wid];
     },
     addObservation(state, text) {
       var obs = store.getters["factory/getNewToolRecord"]("observations");
@@ -248,5 +255,8 @@ function configureWidget(state, info) {
   Vue.set(state.widgets, info.wrec.id, info.wrec);
   info.store = store;
   store.getters["factory/makeNewWidget"](info);
+}
+function isOk(state, wid) {
+  return wid && wid in state.widgets;
 }
 export default store;

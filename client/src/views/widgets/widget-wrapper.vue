@@ -52,9 +52,11 @@ export default {
     copyDelete(e) {
       if (!(this.active && this.isRole("designer"))) return;
       this.widgetLayer = e.target.parentElement;
-      var r = this.$el.getBoundingClientRect();
-      if (e.pageY < r.top && e.pageY > r.top - 16) {
-        if (e.pageX > r.right - 32 && e.pageX < r.right - 16) {
+      let r = this.$el.getBoundingClientRect();
+      let right = r.left + window.scrollX + this.$el.offsetWidth;
+      let top = r.top + window.scrollY;
+      if (e.pageY < top + 16 && e.pageY > top) {
+        if (e.pageX > right - 32 && e.pageX < right - 16) {
           this.$store.commit("copyWidget", {
             wid: this.$parent.wid,
             phase: this.$store.getters.currentPhase,
@@ -63,7 +65,7 @@ export default {
             left: e.pageX + 10,
             top: e.pageY - 70
           });
-        } else {
+        } else if (e.pageX > right - 16 && e.pageX < right) {
           eventBus.$emit(
             "typeDeselected",
             this.$parent.$el.getAttribute("widgettype")
@@ -115,7 +117,7 @@ export default {
 }
 .widget:hover::after {
   position: absolute;
-  top: -16px;
+  top: 0px;
   right: 0px;
   content: url(../../assets/img/widget.png);
 }

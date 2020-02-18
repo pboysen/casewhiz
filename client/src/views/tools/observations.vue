@@ -39,7 +39,7 @@ export default {
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .observations {
   width: 95%;
   min-height: 300px;
@@ -48,6 +48,7 @@ export default {
 .observation {
   border-radius: 4px;
   width: 98%;
+  opacity: 70%;
   padding: 2px;
   min-height: 20px;
   margin: 1px;
@@ -57,8 +58,8 @@ export default {
 .observationHelp {
   width: 100%;
   font-size: $small-font;
-  opacity: 70%;
   margin-left: 10px;
   padding: 2px;
+  z-index: 1;
 }
 </style>

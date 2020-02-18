@@ -35,26 +35,21 @@ export default {
       return this.currentWidget;
     },
     size() {
-      if (!this.wid) return 20;
       return this.$store.getters.size(this.wid);
     },
     answers() {
-      if (!this.wid) return "20";
       return this.$store.getters.answers(this.wid);
     },
     optional() {
-      if (!this.wid) return false;
       return this.$store.getters.optional(this.wid);
     },
     possibleSources() {
       return this.$store.getters.possibleSources;
     },
     src() {
-      if (!this.wid) return "";
       return this.$store.getters.src(this.wid);
     },
     options() {
-      if (!this.wid) return [];
       return this.$store.getters.options(this.wid);
     },
     sources() {

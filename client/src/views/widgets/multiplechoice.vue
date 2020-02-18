@@ -22,9 +22,9 @@ export default {
           if (bullet.textContent != node.textContent) break;
           let top = node.offsetTop - bullet.offsetTop + 5;
           radios.push({
-            key: index++,
             value: `mc${this.wid}`,
-            style: `left: 12px; top: ${top}px;`
+            style: `left: 12px; top: ${top}px;`,
+            key: index++
           });
         }
         node = node.nextElementSibling;
@@ -52,10 +52,11 @@ export default {
 </template>
 <style lang="scss" scoped>
 .multiplechoice {
-  padding-left: 10px;
+  padding: 0;
   position: absolute;
 }
 .multiplechoice input[type="radio"] {
+  margin: 0;
   position: absolute;
 }
 </style>

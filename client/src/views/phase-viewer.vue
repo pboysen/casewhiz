@@ -86,8 +86,8 @@ export default {
               type: "multiplechoice",
               layer: this.widgetLayer,
               event: event,
-              left: event.pageX - 30,
-              top: event.pageY - 100
+              left: event.target.offsetLeft - 15,
+              top: event.target.offsetTop
             });
             break;
           }
@@ -97,8 +97,8 @@ export default {
               type: "checklist",
               layer: this.widgetLayer,
               event: event,
-              left: event.pageX - 30,
-              top: event.pageY - 100
+              left: event.target.offsetLeft - 22,
+              top: event.target.offsetTop - 8
             });
             break;
           }

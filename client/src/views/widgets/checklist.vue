@@ -22,9 +22,9 @@ export default {
           if (bullet.textContent != node.textContent) break;
           let top = node.offsetTop - bullet.offsetTop + 5;
           radios.push({
-            key: index++,
             value: `cl${this.wid}-${index}`,
-            style: `left: 15px; top: ${top}px;`
+            style: `left: 15px; top: ${top}px;`,
+            key: index++
           });
         }
         node = node.nextElementSibling;

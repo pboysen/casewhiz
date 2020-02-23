@@ -15,7 +15,6 @@ const getDefaultState = () => {
       textfield: {
         type: "textfield",
         src: "textfield.png",
-        constructor: Vue.extend(textfield),
         isSource: true,
         isTarget: true,
         isDraggable: true,
@@ -36,7 +35,6 @@ const getDefaultState = () => {
       textarea: {
         type: "textarea",
         src: "textarea.png",
-        constructor: Vue.extend(textarea),
         isSource: true,
         isTarget: true,
         isDraggable: true,
@@ -54,7 +52,6 @@ const getDefaultState = () => {
       select: {
         type: "select",
         src: "select.png",
-        constructor: Vue.extend(select),
         isSource: true,
         isTarget: false,
         isDraggable: true,
@@ -74,7 +71,6 @@ const getDefaultState = () => {
       carryforward: {
         type: "carryforward",
         src: "cforward.png",
-        constructor: Vue.extend(carryforward),
         isSource: false,
         isTarget: true,
         isDraggable: true,
@@ -91,7 +87,6 @@ const getDefaultState = () => {
       media: {
         type: "media",
         src: "media.png",
-        constructor: Vue.extend(media),
         isSource: false,
         isTarget: false,
         isDraggable: true,
@@ -108,7 +103,6 @@ const getDefaultState = () => {
       multiplechoice: {
         type: "multiplechoice",
         src: "multiplechoice.png",
-        constructor: Vue.extend(multiplechoice),
         isSource: true,
         isTarget: false,
         isDraggable: false,
@@ -125,7 +119,6 @@ const getDefaultState = () => {
       checklist: {
         type: "checklist",
         src: "checklist.png",
-        constructor: Vue.extend(checklist),
         isSource: true,
         isTarget: false,
         isDraggable: false,
@@ -185,17 +178,24 @@ const factory = {
     getWidgets: state => state.widgets,
     getTools: state => state.tools,
     makeNewWidget: state => info => {
-      var wdata = { wid: info.wrec.id, event: info.event };
-      var store = info.store;
-      var widget = new state.widgets[info.type].constructor({ wdata, store });
+      let wdata = { wid: info.wrec.id, event: info.event };
+      let store = info.store;
+      let widget = new imports[info.type]({ wdata, store });
       widget.$mount();
       info.el = widget.$el;
-      info.layer.appendChild(info.el);
       info.el.style = `left: ${info.left}px; top: ${info.top}px;`;
-      if (info.rect)
-        info.el.style += `width: ${info.rect.width}px; height: ${info.rect.height}px;`;
+      let r = info.wrec.rect;
+      if (r)
+        info.el.firstChild.style = `width: ${r.width}px; height: ${r.height}px;`;
       info.el.setAttribute("wid", info.wrec.id);
-      if (state.widgets[info.type].isDraggable) setDraggable(info.el, store);
+      info.layer.appendChild(info.el);
+      info.store.commit("setCurrentWidget", info.wrec.id);
+      info.store.commit("setWidgetRect", info.el.getBoundingClientRect());
+      if (
+        state.widgets[info.type].isDraggable &&
+        store.getters.currentRole === "designer"
+      )
+        setDraggable(info.el);
     },
     getNewWidgetRecord: state => type => {
       var prototype = state.widgets[type].prototype;
@@ -222,7 +222,17 @@ const factory = {
   }
 };
 
-const setDraggable = function(widgetWrapper, store) {
+let imports = {
+  textfield: Vue.extend(textfield),
+  textarea: Vue.extend(textarea),
+  select: Vue.extend(select),
+  carryforward: Vue.extend(carryforward),
+  media: Vue.extend(media),
+  checklist: Vue.extend(checklist),
+  multiplechoice: Vue.extend(multiplechoice)
+};
+
+const setDraggable = function(widgetWrapper) {
   widgetWrapper.onmousedown = function(e) {
     var left = widgetWrapper.offsetLeft;
     var top = widgetWrapper.offsetTop;
@@ -234,9 +244,8 @@ const setDraggable = function(widgetWrapper, store) {
     moveAt(e.pageX, e.pageY);
 
     function moveAt(pageX, pageY) {
-      if (store.getters.currentRole === "designer")
-        widgetWrapper.style = `left: ${pageX - offsetX}px; top: ${pageY -
-          offsetY}px;`;
+      widgetWrapper.style = `left: ${pageX - offsetX}px; top: ${pageY -
+        offsetY}px;`;
     }
 
     window.onmousemove = function(e) {

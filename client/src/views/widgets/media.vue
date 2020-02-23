@@ -32,10 +32,21 @@ export default {
   resize: both;
   overflow: hidden;
   padding: 2px;
+  cursor: grab;
 }
-.widget iframe {
+.widget[widgettype="media"] iframe {
   border: 1px solid gray;
+  pointer-events: none;
   width: 100%;
   height: 100%;
+}
+.widget[widgettype="media"].student div {
+  cursor: pointer;
+  resize: none;
+}
+.widget[widgettype="media"].student iframe {
+  cursor: pointer;
+  resize: none;
+  pointer-events: auto;
 }
 </style>

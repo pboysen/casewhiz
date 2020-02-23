@@ -20,17 +20,17 @@ export default {
     };
   },
   mounted() {
-    eventBus.$on("loadDocument", url => this.loadDocument(url));
+    eventBus.$on("loadDocument", info => this.loadDocument(info));
   },
   methods: {
-    loadDocument(url) {
-      this.url = url;
+    loadDocument(info) {
+      this.url = info.url;
       import("pdfjs-dist/webpack").then(pdfjs => {
         this.$store.commit("setDefaultState");
-        var loadingTask = pdfjs.getDocument(url);
+        let loadingTask = pdfjs.getDocument(info.url);
         loadingTask.promise.then(pdf => {
           this.pdf = pdf;
-          this.$store.commit("addPhases", pdf.numPages);
+          info.setState(pdf, this.url);
         });
       });
     }

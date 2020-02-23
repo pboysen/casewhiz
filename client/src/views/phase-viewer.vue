@@ -27,18 +27,13 @@ export default {
       showMenu: false
     };
   },
-  mounted() {
-    if (this.pindex == 0) {
-      this.$store.commit("setCurrentPhase", 0);
-      this.getPhase();
-    }
-  },
   methods: {
     getPhase() {
       if (this.pdf) {
         var container = this.$el.firstChild;
         while (container.lastChild) container.removeChild(container.lastChild);
         var that = this;
+        that.isLoaded = true;
         this.pdf.getPage(this.pindex + 1).then(function(pdfPage) {
           that.page = pdfPage;
           const viewport = new PDFPageView({
@@ -58,7 +53,10 @@ export default {
           that.widgetLayer = document.createElement("div");
           that.widgetLayer.className = "widgetLayer";
           viewport.div.appendChild(that.widgetLayer);
-          that.isLoaded = true;
+          that.$store.getters.displayWidgets({
+            phase: that.pindex,
+            layer: that.widgetLayer
+          });
         });
       }
     },

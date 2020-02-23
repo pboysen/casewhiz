@@ -9,7 +9,7 @@ export default {
       this.$emit("hide");
       var info = {
         wid: null,
-        phase: this.$store.getters.currentPhase,
+        phase: this.currentPhase,
         type: type,
         layer: this.layer,
         left: event.pageX + 10,
@@ -19,7 +19,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(["noListWidgets"])
+    ...mapGetters(["noListWidgets", "currentPhase"])
   }
 };
 </script>

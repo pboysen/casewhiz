@@ -17,4 +17,4 @@ new Vue({
   render: h => h(App)
 }).$mount("#app");
 
-eventBus.$emit("loadDocument", { url: "Making the Case.pdf" });
+//eventBus.$emit("loadDocument", { url: "Making the Case.pdf" });

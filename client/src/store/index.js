@@ -108,14 +108,26 @@ const store = new Vuex.Store({
     phaseIsLocked: state => pid =>
       state.role === "student" && store.getters["responses/isFuturePhase"](pid),
     copyState: state => {
-      store.commit("responses/resetDefaultState");
+      store.commit("responses/setDefaultState");
       return JSON.stringify(state);
+    },
+    displayWidgets: state => info => {
+      info.store = store;
+      Object.values(state.widgets).forEach(w => {
+        if (w.phase == info.phase) {
+          info.wrec = w;
+          info.type = w.type;
+          info.left = w.rect.left - 10;
+          info.top = w.rect.top - 85;
+          store.getters["factory/makeNewWidget"](info);
+        }
+      });
     }
   },
   mutations: {
     setState(state, newState) {
       Object.assign(state, newState);
-      store.commit("setCurrentPhase", 0);
+      store.commit("setCurrentPhase", -1);
     },
     setDefaultState(state) {
       Object.assign(state, getDefaultState());
@@ -225,7 +237,7 @@ const store = new Vuex.Store({
   },
   actions: {
     restartStudent() {
-      store.commit("responses/resetDefaultState");
+      store.commit("responses/setDefaultState");
       store.commit("setCurrentPhase", 0);
       store.commit("setCurrentWidget", null);
     }

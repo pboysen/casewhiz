@@ -25,7 +25,7 @@ const responses = {
     isFuturePhase: state => pid => pid > state.activePhase,
     combineAnswers: state => sources => {
       let content = "";
-      sources.forEach(wid => {
+      Object.values(sources).forEach(wid => {
         if (wid in state.answers) content += state.answers[wid] + "\n";
       });
       return content;

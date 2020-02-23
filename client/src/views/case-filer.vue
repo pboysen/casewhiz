@@ -52,47 +52,49 @@ export default {
     },
     getPDFFile(file) {
       this.currentFile = file;
+      let that = this;
       eventBus.$emit("loadDocument", {
         url: file.name,
-        cb: function setCaseState() {
-          this.$store.commit("setCurrentPhase", 0);
+        setState: function setCaseState(pdf, url) {
+          that.$store.commit("addPhases", pdf.numPages);
+          that.$store.commit("setFileName", url);
+          that.$nextTick(() => that.$store.commit("setCurrentPhase", 0));
         }
       });
     },
     getCaseFile(file) {
       this.currentFile = file;
+      let that = this;
       this.getFileBlob(file, function(blob) {
-        var view = new DataView(blob);
-        var len = view.getUint32(0);
-        var reader = new FileReader();
-        var that = this;
+        let view = new DataView(blob);
+        let len = view.getUint32(0);
+        let reader = new FileReader();
         reader.onload = function() {
-          var caseState = JSON.parse(reader.result);
-          reader.onload = function() {
-            eventBus.$emit("loadDocument", {
-              url: reader.result,
-              cb: function setCaseState() {
-                that.$store.commit("resetState", caseState);
-              }
-            });
-          };
-          var pdfData = new Blob([blob.slice(len + 4)]);
-          reader.readAsDataURL(pdfData);
+          let caseState = JSON.parse(reader.result);
+          let url = URL.createObjectURL(new Blob([blob.slice(len + 4)]));
+          eventBus.$emit("loadDocument", {
+            url: url,
+            setState: function setCaseState(pdf, url) {
+              URL.revokeObjectURL(url);
+              that.$store.commit("setState", caseState);
+              that.$nextTick(() => that.$store.commit("setCurrentPhase", 0));
+            }
+          });
         };
         reader.readAsText(new Blob([blob.slice(4, len + 4)]));
       });
     },
     getFileBlob(file, cb) {
-      var reader = new FileReader();
+      let reader = new FileReader();
       reader.onload = function() {
-        cb(reader.result);
+        if (cb) cb(reader.result);
       };
       reader.readAsArrayBuffer(file);
     },
     publishIt() {
-      var input = document.getElementById("publishFile");
-      var msg = this.publish(input.value);
-      var err = document.getElementById("puberror");
+      let input = document.getElementById("publishFile");
+      let msg = this.publish(input.value);
+      let err = document.getElementById("puberror");
       if (msg === "") {
         this.menu = "";
         err.style.display = "none";
@@ -104,9 +106,9 @@ export default {
     publish(fileName) {
       if (!this.currentFile) return "Import a file first.";
       if (fileName === "") return "Enter a file name.";
-      var that = this;
+      this.$store.commit("setCurrentPhase", -1);
+      let json = this.$store.getters.copyState;
       this.getFileBlob(this.currentFile, function(blob) {
-        var json = that.$store.getters.copyState;
         var lenBuffer = new ArrayBuffer(4);
         var view = new DataView(lenBuffer);
         view.setUint32(0, json.length);
@@ -118,8 +120,9 @@ export default {
         a.download = fileName + ".case";
         a.click();
         URL.revokeObjectURL(a.href);
-        return "";
       });
+      this.$nextTick(() => this.$store.commit("setCurrentPhase", 0));
+      return "";
     }
   }
 };
@@ -144,11 +147,11 @@ export default {
         type="text"
         id="publishFile"
         size="10"
-        placeholder="Filename to publish"
+        placeholder="e.g. giraffe"
       />.case
       <div class="error" id="puberror"></div>
-      <button class="publish" @click="publishIt">Publish</button>
       <button class="cancel" @click="menu = ''">Cancel</button>
+      <button class="publish" @click="publishIt">Publish</button>
     </div>
   </div>
 </template>
@@ -229,11 +232,11 @@ export default {
 .cancel {
   position: absolute;
   bottom: 5px;
-  right: 5px;
+  left: 5px;
 }
 .publish {
   position: absolute;
   bottom: 5px;
-  left: 5px;
+  right: 5px;
 }
 </style>

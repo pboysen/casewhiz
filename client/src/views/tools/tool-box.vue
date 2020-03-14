@@ -56,7 +56,7 @@ export default {
 <style lang="scss" scoped>
 #tool-box {
   flex: 0 1 auto;
-  width: 20%;
+  width: 30%;
   height: 100%;
   padding: 0;
   box-sizing: border-box;

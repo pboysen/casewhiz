@@ -44,8 +44,8 @@ export default {
   padding: 0 2px 4px 2px;
   height: 22px;
   min-width: 100px;
+  max-width: 400px;
   white-space: nowrap;
-  overflow-x: visible;
   border-radius: 5px;
   border: 1px solid gray;
   background-color: $bg-color;

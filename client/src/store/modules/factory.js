@@ -7,6 +7,7 @@ import carryforward from "@/views/widgets/carryforward.vue";
 import media from "@/views/widgets/media.vue";
 import checklist from "@/views/widgets/checklist.vue";
 import multiplechoice from "@/views/widgets/multiplechoice.vue";
+import imageanswer from "@/views/widgets/image-answer.vue";
 Vue.use(Vuex);
 
 const getDefaultState = () => {
@@ -131,6 +132,23 @@ const getDefaultState = () => {
             optional: false
           }
         }
+      },
+      imageanswer: {
+        type: "imageanswer",
+        src: "front-camera.png",
+        isSource: true,
+        isTarget: false,
+        isDraggable: true,
+        prototype: {
+          type: "imageanswer",
+          id: null,
+          phase: null,
+          rect: null,
+          props: {
+            sources: [],
+            optional: false
+          }
+        }
       }
     },
     tools: {
@@ -191,11 +209,7 @@ const factory = {
       info.layer.appendChild(info.el);
       info.store.commit("setCurrentWidget", info.wrec.id);
       info.store.commit("setWidgetRect", info.el.getBoundingClientRect());
-      if (
-        state.widgets[info.type].isDraggable &&
-        store.getters.currentRole === "designer"
-      )
-        setDraggable(info.el);
+      if (state.widgets[info.type].isDraggable) setDraggable(widget);
     },
     getNewWidgetRecord: state => type => {
       var prototype = state.widgets[type].prototype;
@@ -229,31 +243,30 @@ let imports = {
   carryforward: Vue.extend(carryforward),
   media: Vue.extend(media),
   checklist: Vue.extend(checklist),
-  multiplechoice: Vue.extend(multiplechoice)
+  multiplechoice: Vue.extend(multiplechoice),
+  imageanswer: Vue.extend(imageanswer)
 };
 
-const setDraggable = function(widgetWrapper) {
-  widgetWrapper.onmousedown = function(e) {
-    var left = widgetWrapper.offsetLeft;
-    var top = widgetWrapper.offsetTop;
-    var width = widgetWrapper.offsetWidth;
-    var height = widgetWrapper.offsetHeight;
+const setDraggable = function(widget) {
+  let wrapper = widget.$el;
+  wrapper.onmousedown = function(e) {
+    if (!widget.$children[0].dragging) return;
+    var left = wrapper.offsetLeft;
+    var top = wrapper.offsetTop;
+    var width = wrapper.offsetWidth;
+    var height = wrapper.offsetHeight;
     var offsetX = e.pageX - left;
     var offsetY = e.pageY - top;
 
     moveAt(e.pageX, e.pageY);
 
     function moveAt(pageX, pageY) {
-      widgetWrapper.style = `left: ${pageX - offsetX}px; top: ${pageY -
-        offsetY}px;`;
+      wrapper.style = `left: ${pageX - offsetX}px; top: ${pageY - offsetY}px;`;
     }
 
     window.onmousemove = function(e) {
       // move if not resizing
-      if (
-        widgetWrapper.offsetWidth == width &&
-        widgetWrapper.offsetHeight == height
-      )
+      if (wrapper.offsetWidth == width && wrapper.offsetHeight == height)
         moveAt(e.pageX, e.pageY);
     };
   };

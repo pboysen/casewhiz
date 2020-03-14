@@ -25,8 +25,7 @@ const getDefaultState = () => {
       "select",
       "carryforward",
       "media",
-      "multiplechoice",
-      "checklist"
+      "imageanswer"
     ],
     selectedToolTypes: ["Observations", "Comments"]
   };

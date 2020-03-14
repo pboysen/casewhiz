@@ -71,7 +71,7 @@ export default {
   flex: 2 1 auto;
   height: 100%;
   min-height: 350px;
-  min-width: 80%;
+  min-width: 70%;
   border-right: 1px solid $border-color;
 }
 #phase-container {

@@ -6,6 +6,7 @@ export default {
   data: function() {
     return {
       active: true,
+      dragging: false,
       widgetLayer: null
     };
   },
@@ -13,7 +14,7 @@ export default {
     eventBus.$on("widgetBarMoved", e => {
       this.widgetLayer = e.target;
       let drawer = document.getElementById("propertyDrawer");
-      drawer.style.top = e.pageY - 120 + "px;";
+      if (drawer) drawer.style.top = e.pageY - 120 + "px;";
     });
   },
   computed: {
@@ -36,14 +37,17 @@ export default {
       return this.currentRole === role;
     },
     startDrag() {
-      if (!this.active || !this.isRole("designer")) return;
-      this.$store.commit("setCurrentWidget", this.$parent.wid);
-      eventBus.$emit(
-        "typeSelected",
-        this.$parent.$el.getAttribute("widgettype")
-      );
+      if (this.active && this.isRole("designer")) {
+        this.dragging = true;
+        this.$store.commit("setCurrentWidget", this.$parent.wid);
+        eventBus.$emit(
+          "typeSelected",
+          this.$parent.$el.getAttribute("widgettype")
+        );
+      }
     },
     stopDrag() {
+      this.dragging = false;
       window.onmousemove = null;
       if (!this.active || !this.isRole("designer")) return;
       var rect = this.$el.getBoundingClientRect();

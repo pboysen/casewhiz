@@ -186,8 +186,8 @@ const store = new Vuex.Store({
       });
       if (state.incomplete.length == 0) {
         store.commit("responses/unlockNextPhase");
-        state.phase++;
-        state.widget = null;
+        store.commit("setCurrentPhase", state.phase++);
+        window.scrollTo(0, 0);
       }
     },
     addNewWidget(state, info) {

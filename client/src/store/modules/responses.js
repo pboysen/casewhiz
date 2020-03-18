@@ -23,7 +23,7 @@ const responses = {
     isCompletedPhase: state => pid => pid < state.activePhase,
     isActivePhase: state => pid => pid == state.activePhase,
     isFuturePhase: state => pid => pid > state.activePhase,
-    combineAnswers: state => sources => {
+    textAnswers: state => sources => {
       let content = "";
       Object.values(sources).forEach(wid => {
         if (wid in state.answers) content += state.answers[wid] + "\n";

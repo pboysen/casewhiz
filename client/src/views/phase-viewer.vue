@@ -5,13 +5,12 @@ import {
   DefaultTextLayerFactory,
   DefaultAnnotationLayerFactory
 } from "pdfjs-dist/web/pdf_viewer";
-import WidgetsBar from "@/views/widgets/widgets-bar.vue";
-import eventBus from "@/main";
+import widgetsBar from "@/views/widgets/widgets-bar.vue";
 import { mapGetters } from "vuex";
 
 export default {
-  name: "PhaseViewer",
-  components: { WidgetsBar },
+  name: "phase-viewer",
+  components: { widgetsBar },
   props: {
     pdf: Object,
     pindex: Number,
@@ -24,6 +23,7 @@ export default {
       isLoaded: false,
       widgetLayer: null,
       barStyle: "",
+      event: event,
       showMenu: false
     };
   },
@@ -51,9 +51,9 @@ export default {
           viewport.draw();
           viewport.div.lastChild.onmouseup = that.textSelect;
           that.widgetLayer = document.createElement("div");
-          that.widgetLayer.className = "widgetLayer";
+          that.widgetLayer.id = "widgetLayer";
           viewport.div.appendChild(that.widgetLayer);
-          that.$store.getters.displayWidgets({
+          that.$store.dispatch("displayWidgets", {
             phase: that.pindex,
             layer: that.widgetLayer
           });
@@ -77,32 +77,28 @@ export default {
     handleClick(e) {
       if (!this.showMenu && e.ctrlKey) {
         if (!this.widgetLayer) this.widgetLayer = e.target;
+        this.event = e;
         switch (e.target.textContent) {
           case "•": {
             this.$store.commit("addNewWidget", {
-              wid: null,
-              type: "multiplechoice",
+              type: "multiple-choice",
               layer: this.widgetLayer,
-              event: event,
-              left: event.target.offsetLeft - 15,
-              top: event.target.offsetTop
+              left: e.target.offsetLeft - 15,
+              top: e.target.offsetTop
             });
             break;
           }
           case "▪": {
             this.$store.commit("addNewWidget", {
-              wid: null,
-              type: "checklist",
+              type: "check-list",
               layer: this.widgetLayer,
-              event: event,
-              left: event.target.offsetLeft - 22,
-              top: event.target.offsetTop - 8
+              left: e.target.offsetLeft - 22,
+              top: e.target.offsetTop - 8
             });
             break;
           }
           default: {
             this.showMenu = true;
-            eventBus.$emit("widgetBarMoved", e);
             this.barStyle = `left: ${e.pageX - 50}px; top: ${e.pageY - 120}px;`;
             break;
           }
@@ -136,17 +132,18 @@ export default {
       @dragover.stop.prevent
     >
       <div class="page">
-        <div class="widgetLayer"></div>
+        <div id="widgetLayer"></div>
       </div>
     </div>
     <div v-if="currentRole === 'designer'">
-      <WidgetsBar
+      <widgets-bar
         v-if="showMenu"
         :layer="widgetLayer"
         :barStyle="barStyle"
+        :event="event"
         @hide="hide"
       >
-      </WidgetsBar>
+      </widgets-bar>
     </div>
   </div>
 </template>
@@ -158,7 +155,7 @@ export default {
 .viewer-container {
   min-height: 270px;
 }
-.widgetLayer {
+#widgetLayer {
   position: relative;
   left: 0;
   top: 0;

@@ -2,20 +2,17 @@
 import { mapGetters } from "vuex";
 
 export default {
-  name: "SubmitBar",
-  methods: {
-    submit: function() {
-      this.$store.commit("validateResponses");
-    }
-  },
+  name: "submit-bar",
   computed: {
     ...mapGetters(["submitTitle", "currentPhase", "currentRole"]),
-    disabled() {
-      return (
-        this.currentRole === "student" &&
-        this.$store.getters["responses/isCompletedPhase"](this.currentPhase)
-      );
-    }
+    ...mapGetters(["responses/activePhase"])
+  },
+  methods: {
+    submit: function() {
+      this.$store.dispatch("submit");
+    },
+    disabled: () =>
+      this.currentRole === "student" && this.currentPhase < this.activePhase
   }
 };
 </script>

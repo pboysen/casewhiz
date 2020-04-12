@@ -1,17 +1,19 @@
 <script>
-import eventBus from "@/main";
+import eventbus from "@/main";
 
 export default {
-  name: "CaseFiler",
+  name: "case-filer",
   data: function() {
     return {
       currentFile: "",
       menu: ""
     };
   },
+  /*
   mounted() {
-    eventBus.$on("loadDefault", url => this.getCaseFile(url));
+    eventbus.$on("loadDefault", url => this.getCaseFile(url));
   },
+  */
   methods: {
     importIt(e) {
       e.stopPropagation();
@@ -53,11 +55,13 @@ export default {
     getPDFFile(file) {
       this.currentFile = file;
       let that = this;
-      eventBus.$emit("loadDocument", {
-        url: file.name,
-        setState: function setCaseState(pdf, url) {
+      let url = URL.createObjectURL(file);
+      eventbus.$emit("loadDocument", {
+        url: url,
+        setState: function setCaseState(pdf) {
+          URL.revokeObjectURL(url);
           that.$store.commit("addPhases", pdf.numPages);
-          that.$store.commit("setFileName", url);
+          that.$store.commit("setURL", url);
           that.$nextTick(() => that.$store.commit("setCurrentPhase", 0));
         }
       });
@@ -72,11 +76,12 @@ export default {
         reader.onload = function() {
           let caseState = JSON.parse(reader.result);
           let url = URL.createObjectURL(new Blob([blob.slice(len + 4)]));
-          eventBus.$emit("loadDocument", {
+          eventbus.$emit("loadDocument", {
             url: url,
-            setState: function setCaseState(pdf, url) {
+            setState: function setCaseState() {
               URL.revokeObjectURL(url);
               that.$store.commit("setState", caseState);
+              that.$store.commit("setURL", url);
               that.$nextTick(() => that.$store.commit("setCurrentPhase", 0));
             }
           });

@@ -1,9 +1,10 @@
 <script>
+import { mapGetters } from "vuex";
 export default {
-  name: "PropsMenu",
+  name: "props-menu",
   props: {
     title: String,
-    openType: String
+    type: String
   },
   data: function() {
     return {
@@ -11,25 +12,26 @@ export default {
     };
   },
   computed: {
-    show: function() {
+    ...mapGetters(["getDrawerEvent"]),
+    show() {
       if (this.isOpen) return true;
-      return this.openType === this.title.toLowerCase();
+      return this.getDrawerEvent.type === this.type.toLowerCase();
     }
   },
   methods: {
-    toggle: function() {
+    toggle() {
       this.isOpen = !this.isOpen;
     },
-    beforeEnter: function(el) {
+    beforeEnter(el) {
       el.style.height = "0";
     },
-    enter: function(el) {
+    enter(el) {
       el.style.height = el.scrollHeight + "px";
     },
-    beforeLeave: function(el) {
+    beforeLeave(el) {
       el.style.height = el.scrollHeight + "px";
     },
-    leave: function(el) {
+    leave(el) {
       el.style.height = "0";
     }
   }

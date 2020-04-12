@@ -1,64 +1,53 @@
 <script>
-import PropsMenu from "@/views/props-menu.vue";
+import propsMenu from "@/views/props-menu.vue";
 import { mapGetters } from "vuex";
-import eventBus from "@/main";
 
 export default {
   name: "PropertyDrawer",
   components: {
-    PropsMenu
+    propsMenu
   },
   data: function() {
     return {
-      isOpen: false,
-      openType: ""
+      isOpen: false
     };
-  },
-  mounted() {
-    eventBus.$on("widgetBarMoved", e => {
-      let drawer = document.getElementById("propertyDrawer");
-      drawer.style.top = e.pageY - 120 + "px";
-    });
-    eventBus.$on("typeSelected", type => (this.openType = type));
-    eventBus.$on("typeDeselected", () => (this.openType = ""));
   },
   computed: {
     ...mapGetters([
       "currentWidget",
+      "currentPhase",
+      "noListWidgets",
       "possibleSources",
       "selectedWidgetTypes",
       "phaseTitle",
       "submitTitle"
     ]),
-    ...mapGetters("factory", ["getWidgets", "textSizes"]),
-    wid() {
-      return this.currentWidget;
-    },
-    size() {
-      return this.$store.getters.size(this.wid);
-    },
-    answers() {
-      return this.$store.getters.answers(this.wid);
-    },
-    optional() {
-      return this.$store.getters.optional(this.wid);
-    },
-    possibleSources() {
-      return this.$store.getters.possibleSources;
-    },
-    src() {
-      return this.$store.getters.src(this.wid);
-    },
-    options() {
-      return this.$store.getters.options(this.wid);
-    },
-    sources() {
-      return this.$store.getters.sources(this.wid);
+    ...mapGetters("factory", ["textSizes"]),
+    getStyle() {
+      return "top: " + this.$store.getters.getDrawerEvent.top + "px;";
     }
   },
   methods: {
     toggleTab() {
       this.isOpen = !this.isOpen;
+    },
+    getProp(type, prop) {
+      let info = {
+        wid: this.currentWidget,
+        phase: this.currentPhase,
+        type: type,
+        prop: prop
+      };
+      return this.$store.getters.getPropValue(info);
+    },
+    setProp(prop, value) {
+      let info = {
+        wid: this.currentWidget,
+        phase: this.currentPhase,
+        prop: prop,
+        value: value
+      };
+      this.$store.commit("setProp", info);
     },
     setPhaseTitle(e) {
       this.$store.commit("setPhaseTitle", e.target.value);
@@ -66,49 +55,58 @@ export default {
     setSubmitTitle(e) {
       this.$store.commit("setSubmitTitle", e.target.value);
     },
-    setProp(prop, value) {
-      if (!this.wid) return;
-      this.$store.commit("setProp", {
-        prop: prop,
-        value: value
-      });
-    },
     selectSources(select, prop) {
-      var sources = [...select.options]
+      let selectedSources = [];
+      let sources = [...select.options];
+      sources
         .filter(option => option.selected)
-        .map(option => parseInt(option.value, 10));
-      this.setProp(prop, sources);
+        .map(option => {
+          let values = option.value.split(",");
+          selectedSources.push({
+            phase: values[0],
+            wid: values[1]
+          });
+        });
+      this.setProp(prop, selectedSources);
     },
-    isSelected(sid) {
-      if (!this.wid) return;
-      return this.sources.includes(sid);
+    isSelectedSource(type, src) {
+      let sources = this.getProp(type, "sources");
+      let value = false;
+      sources.forEach(s => {
+        if (s.wid == src.wid) value = true;
+      });
+      return value;
+    },
+    srcValue(src) {
+      return `${src.phase},${src.wid}`;
     },
     isSelectedWidget(type) {
       let value = false;
       this.selectedWidgetTypes.forEach(name => {
-        if (name === type) {
-          value = true;
-          return;
-        }
+        if (name === type) value = true;
       });
       return value;
     },
-    selectWidgets(e) {
+    selectAnswers(e) {
       let selected = [];
       let collection = e.originalTarget.selectedOptions;
       for (let i = 0; i < collection.length; i++)
         selected.push(collection[i].label);
       this.$store.commit("setSelectedWidgetTypes", selected);
     },
-    formatSource: src => `${src.wid}:${src.type}:${src.phase}`
+    formatSource: src => `P${src.phase + 1}: ${src.wid}. ${src.type}`
   }
 };
 </script>
 
 <template>
-  <div id="propertyDrawer" :class="['propertyDrawer', { opened: isOpen }]">
+  <div
+    id="propertyDrawer"
+    :class="['propertyDrawer', { opened: isOpen }]"
+    :style="getStyle"
+  >
     <div id="propertyPanel">
-      <PropsMenu title="Phase" :openType="openType">
+      <props-menu title="Phase" type="phase">
         <label for="Phase_PhaseTitle">
           Phase Title:
           <br />
@@ -129,8 +127,8 @@ export default {
             @input="setSubmitTitle"
           />
         </label>
-      </PropsMenu>
-      <PropsMenu title="Widget Selection" :openType="openType">
+      </props-menu>
+      <props-menu title="Widget Selection" type="widget">
         <label for="Props_Select">
           Select:
           <br />
@@ -138,10 +136,10 @@ export default {
             id="Props_Select"
             multiple="multiple"
             size="3"
-            @change="selectWidgets"
+            @change="selectAnswers"
           >
             <option
-              v-for="w in getWidgets"
+              v-for="w in noListWidgets"
               :value="w.type"
               :key="w.type"
               :selected="isSelectedWidget(w.type)"
@@ -150,15 +148,15 @@ export default {
             </option>
           </select>
         </label>
-      </PropsMenu>
-      <PropsMenu title="Textfield" :openType="openType">
-        <label for="Props_Textfield">
+      </props-menu>
+      <props-menu title="Textfield" type="textfield-widget">
+        <label for="textfield">
           Size (in characters):
           <br />
           <select
-            id="Props_Textfield"
-            :value="size"
-            @change="setProp('size', $event.target.value)"
+            id="textfield"
+            :value="getProp('textfield-widget', 'textSize')"
+            @change="setProp('textSize', $event.target.value)"
           >
             <option
               v-for="(size, index) in textSizes"
@@ -169,86 +167,88 @@ export default {
             </option>
           </select>
         </label>
-        <label for="Textfield_Answers">
-          Answers
-          <br />
+        <label for="textfield-opt">
           <input
-            id="Textfield_Answers"
-            type="text"
-            placeholder="dog;cat;parakeet"
-            :value="answers"
-            @input="setProp('answers', $event.target.value)"
+            id="textfield-opt"
+            type="checkbox"
+            :checked="getProp('textfield-widget', 'optional')"
+            @change="setProp('optional', $event.target.checked)"
           />
+          Optional
         </label>
-        <label for="CFTextfield">
-          Carryforward Sources:
+        <div class="options">
+          <label for="textfield-widgets">
+            Answers
+            <br />
+            <input
+              id="textfield-widgets"
+              type="text"
+              placeholder="dog,cat,parakeet"
+              :value="getProp('textfield-widget', 'textOptions')"
+              @input="setProp('textOptions', $event.target.value)"
+            />
+          </label>
+          <label for="CFtextfield">
+            Widget Sources:
+            <br />
+            <select
+              id="CFtextfield"
+              multiple
+              size="3"
+              @change="selectSources($event.target, 'sources')"
+            >
+              <option
+                v-for="src in possibleSources"
+                :value="srcValue(src)"
+                :key="src.wid"
+                :selected="isSelectedSource('textfield-widget', src)"
+              >
+                {{ formatSource(src) }}
+              </option>
+            </select>
+          </label>
+        </div>
+      </props-menu>
+      <props-menu title="Textarea" type="textarea-widget">
+        <label for="CFtextarea">
+          Widget Sources:
           <br />
           <select
-            id="CFTextfield"
+            id="CFtextarea"
             multiple
             size="3"
             @change="selectSources($event.target, 'sources')"
           >
             <option
               v-for="src in possibleSources"
-              :value="src.wid"
+              :value="srcValue(src)"
               :key="src.wid"
-              :selected="isSelected(src.wid)"
+              :selected="isSelectedSource('textarea-widget', src)"
             >
               {{ formatSource(src) }}
             </option>
           </select>
         </label>
-        <label for="textfieldopt">
+        <label for="textarea-opt">
           <input
-            id="textfieldopt"
+            id="textarea-opt"
             type="checkbox"
-            :checked="optional"
+            :checked="getProp('textarea-widget', 'optional')"
             @change="setProp('optional', $event.target.checked)"
           />
           Optional
         </label>
-      </PropsMenu>
-      <PropsMenu title="Textarea" :openType="openType">
-        <label for="CFTextarea">
-          Carryforward Sources:
-          <br />
-          <select
-            id="CFTextarea"
-            multiple
-            size="3"
-            @change="selectSources($event.target, 'sources')"
-          >
-            <option
-              v-for="src in possibleSources"
-              :value="src.wid"
-              :key="src.wid"
-              :selected="isSelected(src.wid)"
-            >
-              {{ formatSource(src) }}
-            </option>
-          </select>
-        </label>
-        <label for="textareaopt">
-          <input
-            id="textareaopt"
-            type="checkbox"
-            :checked="optional"
-            @change="setProp('optional', $event.target.checked)"
-          />
-          Optional
-        </label>
-      </PropsMenu>
-      <PropsMenu title="Select" :openType="openType">
+      </props-menu>
+      <props-menu title="Select" type="select-widget">
         <label for="Props_Select">
           Options:
           <br />
           <input
             id="Props_Select"
             type="text"
-            :value="options"
-            @input="setProp('options', $event.target.value)"
-            placeholder="dog;cat;parakeet"
+            :value="getProp('select-widget', 'selectOptions')"
+            @input="setProp('selectOptions', $event.target.value)"
+            placeholder="dog,cat,parakeet"
           />
         </label>
         <label for="selectsize">
@@ -257,24 +257,35 @@ export default {
           <input
             id="selectsize"
             type="text"
-            :value="size"
+            :value="getProp('select-widget', 'selectSize')"
             placeholder="4"
-            @input="setProp('size', $event.target.value)"
+            @input="setProp('selectSize', $event.target.value)"
+          />
+        </label>
+        <label for="selectcorrect">
+          Correct Answer:
+          <br />
+          <input
+            id="selectcorrect"
+            type="text"
+            :value="getProp('select-widget', 'correct')"
+            placeholder="cat"
+            @input="setProp('correct', $event.target.value)"
           />
         </label>
         <label for="selectopt">
           <input
             id="selectopt"
             type="checkbox"
-            :checked="optional"
-            @change="setProp('optional', e.target.checked)"
+            :checked="getProp('select-widget', 'optional')"
+            @change="setProp('optional', $event.target.checked)"
           />
           Optional
         </label>
-      </PropsMenu>
-      <PropsMenu title="CarryForward" :openType="openType">
+      </props-menu>
+      <props-menu title="CarryForward" type="carry-forward">
         <label for="CF_Src">
-          Carryforward Sources:
+          Widget Sources:
           <br />
           <select
             id="CF_Src"
@@ -284,28 +295,28 @@ export default {
           >
             <option
               v-for="src in possibleSources"
-              :value="src.wid"
+              :value="srcValue(src)"
               :key="src.wid"
-              :selected="isSelected(src.wid)"
+              :selected="isSelectedSource('carry-forward', src)"
             >
               {{ formatSource(src) }}
             </option>
           </select>
         </label>
-      </PropsMenu>
-      <PropsMenu title="Media" :openType="openType">
+      </props-menu>
+      <props-menu title="MediaWidget" type="media-widget">
         <label for="Media_URL">
           URL:
           <br />
           <input
             id="Media_SRC"
             type="text"
-            :value="src"
+            :value="getProp('media-widget', 'mediaSrc')"
             placeholder="https://www.arizona.edu"
-            @input="setProp('src', $event.target.value)"
+            @input="setProp('mediaSrc', $event.target.value)"
           />
         </label>
-      </PropsMenu>
+      </props-menu>
     </div>
     <div v-on:click="toggleTab" id="drawerTab">
       <span :class="{ rotate: isOpen }">
@@ -316,17 +327,13 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-#propertyWrapper {
-  position: relative;
-  z-index: 1;
-}
-.propertyDrawer {
+#propertyDrawer {
   position: absolute;
   width: 170px;
   top: 50px;
-  left: -172px;
+  left: -178px;
   padding: 0;
-  transition: all 1s ease;
+  transition: all 0.5s;
 }
 #propertyPanel {
   background-color: $bg-color;
@@ -348,16 +355,16 @@ export default {
   left: 170px;
   padding: 4px;
   transform: rotate(90deg);
-  transition-duration: 1s;
+  transition-duration: 0.5s;
 }
-.opened {
-  left: 0px;
+#propertyDrawer.opened {
+  left: -24px;
 }
 #drawerTab .rotate img {
   transform: rotate(-90deg);
-  transition-duration: 1s;
+  transition-duration: 0.75s;
 }
-.propertyPanel {
+#propertyPanel {
   position: absolute;
   width: 85%;
   border-radius: 0 8px 8px 0;
@@ -368,13 +375,17 @@ export default {
   padding: 4px;
   font-size: 12px;
 }
-.propertyPanel input[type="text"] {
+#propertyPanel input[type="text"] {
   width: 100px;
 }
-.propertyPanel select {
+#propertyPanel select {
   border: 1px solid $border-color;
-  width: 100px;
+  width: 130px;
   border-radius: 0;
   overflow: none;
+}
+.options {
+  background-color: green;
+  border: 1px dotted black;
 }
 </style>

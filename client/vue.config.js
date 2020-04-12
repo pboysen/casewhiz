@@ -9,5 +9,8 @@ module.exports = {
         `
       }
     }
+  },
+  devServer: {
+      proxy: 'http://springbuck/',
   }
 };

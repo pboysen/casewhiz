@@ -1,17 +1,17 @@
 <script>
-import eventBus from "@/main";
-import PhaseBar from "@/views/phase-bar.vue";
-import PropertyDrawer from "@/views/property-drawer.vue";
-import PhaseViewer from "@/views/phase-viewer.vue";
-import SubmitBar from "@/views/submit-bar.vue";
+import eventbus from "@/main";
+import phaseBar from "@/views/phase-bar.vue";
+import propertyDrawer from "@/views/property-drawer.vue";
+import phaseViewer from "@/views/phase-viewer.vue";
+import submitBar from "@/views/submit-bar.vue";
 import { mapGetters } from "vuex";
 export default {
-  name: "CaseViewer",
+  name: "case-viewer",
   components: {
-    PhaseBar,
-    PhaseViewer,
-    PropertyDrawer,
-    SubmitBar
+    phaseBar,
+    phaseViewer,
+    propertyDrawer,
+    submitBar
   },
   data: function() {
     return {
@@ -20,13 +20,13 @@ export default {
     };
   },
   mounted() {
-    eventBus.$on("loadDocument", info => this.loadDocument(info));
+    eventbus.$on("loadDocument", info => this.loadDocument(info));
   },
   methods: {
     loadDocument(info) {
       this.url = info.url;
+      this.$store.dispatch("setDefaultState");
       import("pdfjs-dist/webpack").then(pdfjs => {
-        this.$store.commit("setDefaultState");
         let loadingTask = pdfjs.getDocument(info.url);
         loadingTask.promise.then(pdf => {
           this.pdf = pdf;
@@ -48,9 +48,9 @@ export default {
 </script>
 <template>
   <div id="case-viewer">
-    <PhaseBar></PhaseBar>
+    <phase-bar></phase-bar>
     <div id="phase-container">
-      <PhaseViewer
+      <phase-viewer
         v-for="(phase, index) in getPhases"
         :pdf="getPDF"
         :pindex="index"
@@ -58,9 +58,9 @@ export default {
         :key="phase.id"
       />
     </div>
-    <PropertyDrawer v-if="currentRole == 'designer' && hasPhases">
-    </PropertyDrawer>
-    <SubmitBar></SubmitBar>
+    <property-drawer v-if="currentRole == 'designer' && hasPhases">
+    </property-drawer>
+    <submit-bar></submit-bar>
   </div>
 </template>
 }
@@ -68,7 +68,7 @@ export default {
 @import "../../node_modules/pdfjs-dist/web/pdf_viewer.css";
 #case-viewer {
   position: relative;
-  flex: 2 1 auto;
+  flex: 1 1 auto;
   height: 100%;
   min-height: 350px;
   min-width: 70%;

@@ -1,25 +1,23 @@
 <script>
 import { mapGetters } from "vuex";
-
 export default {
-  name: "WidgetsBar",
-  props: ["layer", "barStyle"],
+  name: "widgets-bar",
+  props: ["layer", "barStyle", "event"],
   methods: {
-    addWidget: function(type, event) {
+    addWidget: function(type) {
       this.$emit("hide");
-      var info = {
-        wid: null,
-        phase: this.currentPhase,
+      let info = {
         type: type,
         layer: this.layer,
-        left: event.pageX + 10,
-        top: event.pageY - 70
+        left: this.event.pageX,
+        top: this.event.pageY - 80,
+        props: {}
       };
       this.$store.commit("addNewWidget", info);
     }
   },
   computed: {
-    ...mapGetters(["noListWidgets", "currentPhase"])
+    ...mapGetters(["noListWidgets"])
   }
 };
 </script>
@@ -32,7 +30,7 @@ export default {
       :src="require(`@/assets/img/${widget.src}`)"
       :key="widget.type"
       :title="widget.type"
-      @click="addWidget(widget.type, $event)"
+      @click="addWidget(widget.type)"
     />
   </div>
 </template>

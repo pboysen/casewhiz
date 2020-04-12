@@ -8,7 +8,9 @@
     "build": "vue-cli-service build --target app --inline-vue"
   },
   "dependencies": {
+    "@zoomus/websdk": "^1.7.3",
     "core-js": "^3.6.4",
+    "csvtojson": "^2.0.10",
     "fibers": "^4.0.2",
     "pdfjs-dist": "^2.2.228",
     "vue": "^2.6.10",

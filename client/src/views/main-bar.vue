@@ -1,11 +1,11 @@
 <script>
-import RoleSelector from "@/views/role-selector.vue";
-import CaseFiler from "@/views/case-filer.vue";
+import roleSelector from "@/views/role-selector.vue";
+import caseFiler from "@/views/case-filer.vue";
 export default {
-  name: "MainBar",
+  name: "main-bar",
   components: {
-    RoleSelector,
-    CaseFiler
+    roleSelector,
+    caseFiler
   },
   computed: {
     isDesigner() {
@@ -17,9 +17,9 @@ export default {
 
 <template>
   <div id="casebar">
-    <RoleSelector></RoleSelector>
+    <role-selector></role-selector>
     <div id="main-title">Springbuck Designer</div>
-    <CaseFiler v-if="isDesigner"></CaseFiler>
+    <case-filer v-if="isDesigner"></case-filer>
   </div>
 </template>
 
@@ -36,7 +36,7 @@ export default {
 }
 #main-title {
   display: inline-block;
-  font-family: $script-font, cursive;
+  font-family: $script-font;
   font-weight: bold;
   font-size: 24px;
 }

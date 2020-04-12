@@ -1,22 +1,22 @@
 <script>
-import MainBar from "@/views/main-bar.vue";
-import CaseViewer from "@/views/case-viewer.vue";
-import ToolBox from "@/views/tools/tool-box.vue";
+import mainBar from "@/views/main-bar.vue";
+import caseViewer from "@/views/case-viewer.vue";
+import toolBox from "@/views/tools/tool-box.vue";
 export default {
-  name: "CaseWiz",
+  name: "App",
   components: {
-    MainBar,
-    CaseViewer,
-    ToolBox
+    mainBar,
+    caseViewer,
+    toolBox
   }
 };
 </script>
 <template>
   <div id="app">
-    <MainBar></MainBar>
+    <main-bar></main-bar>
     <div id="main-display">
-      <CaseViewer></CaseViewer>
-      <ToolBox></ToolBox>
+      <case-viewer></case-viewer>
+      <tool-box></tool-box>
     </div>
   </div>
 </template>
@@ -28,7 +28,7 @@ body {
   white-space: nowrap;
   tabindex: -1;
 }
-#app {
+#spring-buck {
   margin: 0;
   padding: 0;
   display: block;

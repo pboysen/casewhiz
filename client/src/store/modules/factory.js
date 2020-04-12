@@ -1,158 +1,197 @@
 import Vue from "vue";
 import Vuex from "vuex";
-import textfield from "@/views/widgets/textfield.vue";
-import textarea from "@/views/widgets/textarea.vue";
-import select from "@/views/widgets/select.vue";
-import carryforward from "@/views/widgets/carryforward.vue";
-import media from "@/views/widgets/media.vue";
-import checklist from "@/views/widgets/checklist.vue";
-import multiplechoice from "@/views/widgets/multiplechoice.vue";
-import imageanswer from "@/views/widgets/image-answer.vue";
+import textfieldWidget from "@/views/widgets/textfield-widget.vue";
+import textareaWidget from "@/views/widgets/textarea-widget.vue";
+import selectWidget from "@/views/widgets/select-widget.vue";
+import carryForward from "@/views/widgets/carry-forward.vue";
+import mediaWidget from "@/views/widgets/media-widget.vue";
+import checkList from "@/views/widgets/check-list.vue";
+import multipleChoice from "@/views/widgets/multiple-choice.vue";
+import imageWidget from "@/views/widgets/image-widget.vue";
+import tableWidget from "@/views/widgets/table-widget.vue";
+//import zoomWidget from "@/views/widgets/zoom-widget.vue";
 Vue.use(Vuex);
 
 const getDefaultState = () => {
   return {
     widgets: {
-      textfield: {
-        type: "textfield",
-        src: "textfield.png",
+      "textfield-widget": {
+        type: "textfield-widget",
+        src: "textfield-widget.png",
         isSource: true,
         isTarget: true,
         isDraggable: true,
-        sizes: ["5", "10", "20", "40"],
+        textSizes: ["5", "10", "20", "40"],
         prototype: {
-          type: "textfield",
+          type: "textfield-widget",
           id: null,
-          phase: null,
           rect: null,
+          subWidget: false,
           props: {
             sources: [],
-            size: 20,
+            textSize: 20,
             optional: false,
-            answers: ""
+            textOptions: "",
+            textAnswer: ""
           }
         }
       },
-      textarea: {
-        type: "textarea",
-        src: "textarea.png",
+      "textarea-widget": {
+        type: "textarea-widget",
+        src: "textarea-widget.png",
         isSource: true,
         isTarget: true,
         isDraggable: true,
         prototype: {
-          type: "textarea",
+          type: "textarea-widget",
           id: null,
-          phase: null,
           rect: null,
+          subWidget: false,
           props: {
             sources: [],
             optional: false
           }
         }
       },
-      select: {
-        type: "select",
-        src: "select.png",
+      "select-widget": {
+        type: "select-widget",
+        src: "select-widget.png",
         isSource: true,
         isTarget: false,
         isDraggable: true,
         prototype: {
-          type: "select",
+          type: "select-widget",
           id: null,
-          phase: null,
           rect: null,
+          subWidget: false,
           props: {
-            options: "",
-            size: "1",
+            selectOptions: "",
+            correct: "",
+            selectSize: "1",
             multiple: false,
             optional: false
           }
         }
       },
-      carryforward: {
-        type: "carryforward",
+      "carry-forward": {
+        type: "carry-forward",
         src: "cforward.png",
         isSource: false,
         isTarget: true,
         isDraggable: true,
         prototype: {
-          type: "carryforward",
+          type: "carry-forward",
           id: null,
-          phase: null,
           rect: null,
+          subWidget: false,
           props: {
-            sources: []
+            sources: [],
+            optional: false
           }
         }
       },
-      media: {
-        type: "media",
-        src: "media.png",
+      "media-widget": {
+        type: "media-widget",
+        src: "media-widget.png",
         isSource: false,
         isTarget: false,
         isDraggable: true,
         prototype: {
-          type: "media",
+          type: "media-widget",
           id: null,
-          phase: null,
           rect: null,
+          subWidget: false,
           props: {
-            src: ""
+            mediaSrc: "",
+            optional: false
           }
         }
       },
-      multiplechoice: {
-        type: "multiplechoice",
-        src: "multiplechoice.png",
+      "multiple-choice": {
+        type: "multiple-choice",
+        src: "multiple-choice.png",
         isSource: true,
         isTarget: false,
         isDraggable: false,
         prototype: {
-          type: "multiplechoice",
+          type: "multiple-choice",
           id: null,
-          phase: null,
           rect: null,
+          subWidget: false,
           props: {
             optional: false
           }
         }
       },
-      checklist: {
-        type: "checklist",
-        src: "checklist.png",
+      "check-list": {
+        type: "check-list",
+        src: "check-list.png",
         isSource: true,
         isTarget: false,
         isDraggable: false,
         prototype: {
-          type: "checklist",
+          type: "check-list",
           id: null,
-          phase: null,
           rect: null,
+          subWidget: false,
           props: {
             optional: false
           }
         }
       },
-      imageanswer: {
-        type: "imageanswer",
-        src: "front-camera.png",
+      "image-widget": {
+        type: "image-widget",
+        src: "image-widget.png",
         isSource: true,
         isTarget: false,
         isDraggable: true,
         prototype: {
-          type: "imageanswer",
+          type: "image-widget",
           id: null,
-          phase: null,
           rect: null,
+          subWidget: false,
           props: {
-            sources: [],
+            optional: false
+          }
+        }
+      },
+      "table-widget": {
+        type: "table-widget",
+        src: "table-widget.png",
+        isSource: false,
+        isTarget: false,
+        isDraggable: true,
+        prototype: {
+          type: "table-widget",
+          id: null,
+          rect: null,
+          subWidget: false,
+          props: {
+            table: null,
+            idMap: {},
+            optional: false
+          }
+        }
+      },
+      "zoom-widget": {
+        type: "zoom-widget",
+        src: "zoom-widget.png",
+        isSource: false,
+        isTarget: false,
+        isDraggable: true,
+        prototype: {
+          type: "zoom-widget",
+          id: null,
+          rect: null,
+          subWidget: false,
+          props: {
             optional: false
           }
         }
       }
     },
     tools: {
-      observations: {
+      "observations-tool": {
         title: "Observations",
         userRole: "student",
         prototype: {
@@ -161,7 +200,7 @@ const getDefaultState = () => {
           text: ""
         }
       },
-      comments: {
+      "comments-tool": {
         title: "Comments",
         userRole: "student",
         prototype: {
@@ -172,7 +211,7 @@ const getDefaultState = () => {
           sel: null
         }
       },
-      resources: {
+      "resources-tool": {
         title: "Resources",
         userRole: "student",
         prototype: {
@@ -195,56 +234,60 @@ const factory = {
   getters: {
     getWidgets: state => state.widgets,
     getTools: state => state.tools,
-    makeNewWidget: state => info => {
-      let wdata = { wid: info.wrec.id, event: info.event };
-      let store = info.store;
-      let widget = new imports[info.type]({ wdata, store });
-      widget.$mount();
-      info.el = widget.$el;
-      info.el.style = `left: ${info.left}px; top: ${info.top}px;`;
-      let r = info.wrec.rect;
-      if (r)
-        info.el.firstChild.style = `width: ${r.width}px; height: ${r.height}px;`;
-      info.el.setAttribute("wid", info.wrec.id);
-      info.layer.appendChild(info.el);
-      info.store.commit("setCurrentWidget", info.wrec.id);
-      info.store.commit("setWidgetRect", info.el.getBoundingClientRect());
-      if (state.widgets[info.type].isDraggable) setDraggable(widget);
-    },
-    getNewWidgetRecord: state => type => {
-      var prototype = state.widgets[type].prototype;
-      var obs = JSON.parse(JSON.stringify(prototype));
-      return obs;
-    },
-    getNewToolRecord: state => type => {
-      var prototype = state.tools[type].prototype;
-      var obs = JSON.parse(JSON.stringify(prototype));
-      obs.id = state.tcnt++;
-      return obs;
-    },
-    textSizes: state => {
-      return state.widgets["textfield"].sizes;
-    }
+    textSizes: state => state.widgets["textfield-widget"].textSizes
   },
   mutations: {
     setState(state, newState) {
       Object.assign(state, newState);
     },
+    makeWidget(state, info) {
+      let store = info.store;
+      let widget = new imports[info.type]({
+        propsData: { wid: info.wrec.id },
+        store: store
+      });
+      widget.$mount();
+      let el = widget.$el;
+      el.style = `left: ${info.left}px; top: ${info.top}px;`;
+      let r = info.wrec.rect;
+      if (r)
+        el.firstChild.style = `width: ${r.width}px; height: ${r.height}px;`;
+      info.layer.appendChild(el);
+      if (state.widgets[info.type].isDraggable) setDraggable(widget);
+    },
+    makeSubWidget(state, info) {
+      let store = info.store;
+      console.log(info);
+      let widget = new imports[info.type]({
+        propsData: { wid: info.wid },
+        store
+      });
+      widget.$mount();
+      info.layer.appendChild(widget.$el);
+    }
+  },
+  actions: {
     setDefaultState(state) {
       Object.assign(state, getDefaultState());
+    },
+    getToolRecord(context, type) {
+      var prototype = context.state.tools[type].prototype;
+      return JSON.parse(JSON.stringify(prototype));
     }
   }
 };
 
 let imports = {
-  textfield: Vue.extend(textfield),
-  textarea: Vue.extend(textarea),
-  select: Vue.extend(select),
-  carryforward: Vue.extend(carryforward),
-  media: Vue.extend(media),
-  checklist: Vue.extend(checklist),
-  multiplechoice: Vue.extend(multiplechoice),
-  imageanswer: Vue.extend(imageanswer)
+  "textfield-widget": Vue.extend(textfieldWidget),
+  "textarea-widget": Vue.extend(textareaWidget),
+  "select-widget": Vue.extend(selectWidget),
+  "carry-forward": Vue.extend(carryForward),
+  "media-widget": Vue.extend(mediaWidget),
+  "check-list": Vue.extend(checkList),
+  "multiple-choice": Vue.extend(multipleChoice),
+  "image-widget": Vue.extend(imageWidget),
+  "table-widget": Vue.extend(tableWidget)
+  // "zoom-widget": Vue.extend(zoomWidget)
 };
 
 const setDraggable = function(widget) {

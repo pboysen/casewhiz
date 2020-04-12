@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from "vuex";
 export default {
-  name: "RoleSelector",
+  name: "role-selector",
   computed: {
     ...mapGetters(["currentRole"])
   },

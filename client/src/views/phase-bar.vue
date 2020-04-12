@@ -3,7 +3,7 @@ import { Scrolly, ScrollyViewport, ScrollyBar } from "vue-scrolly";
 import { mapGetters } from "vuex";
 
 export default {
-  name: "PhaseBar",
+  name: "phase-bar",
   components: {
     Scrolly,
     ScrollyViewport,
@@ -17,16 +17,13 @@ export default {
       menuType: "none"
     };
   },
+  computed: {
+    ...mapGetters(["getPhases", "currentPhase", "phaseIsLocked"])
+  },
   methods: {
     setCurrentPhase(phase) {
       this.$store.commit("setCurrentPhase", phase);
-    },
-    phaseIsLocked(pid) {
-      return this.$store.getters.phaseIsLocked(pid);
     }
-  },
-  computed: {
-    ...mapGetters(["getPhases", "currentPhase"])
   }
 };
 </script>

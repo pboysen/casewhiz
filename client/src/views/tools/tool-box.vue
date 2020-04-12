@@ -1,23 +1,36 @@
 <script>
 import { Scrolly, ScrollyViewport, ScrollyBar } from "vue-scrolly";
-import Resources from "@/views/tools/resources.vue";
-import Comments from "@/views/tools/comments.vue";
-import Observations from "@/views/tools/observations.vue";
+import resourcesTool from "@/views/tools/resources-tool.vue";
+import commentsTool from "@/views/tools/comments-tool.vue";
+import observationsTool from "@/views/tools/observations-tool.vue";
 import { mapGetters } from "vuex";
 export default {
-  name: "ToolBox",
+  name: "tool-box",
   components: {
     Scrolly,
     ScrollyViewport,
     ScrollyBar,
-    Resources,
-    Comments,
-    Observations
+    resourcesTool,
+    commentsTool,
+    observationsTool
   },
   data: function() {
     return {
       selected: "",
-      tools: ["Observations", "Resources", "Comments"]
+      tools: [
+        {
+          id: "observations-tool",
+          title: "Observations"
+        },
+        {
+          id: "resources-tool",
+          title: "Resources"
+        },
+        {
+          id: "comments-tool",
+          title: "Comments"
+        }
+      ]
     };
   },
   computed: {
@@ -38,11 +51,11 @@ export default {
       <scrolly-viewport>
         <button
           v-for="tool in tools"
-          :key="tool"
-          @click="selectTool(tool)"
-          :class="['tool-button', { active: selected === tool }]"
+          :key="tool.id"
+          @click="selectTool(tool.id)"
+          :class="['tool-button', { active: selected === tool.id }]"
         >
-          {{ tool }}
+          {{ tool.title }}
         </button>
       </scrolly-viewport>
       <scrolly-bar axis="x"></scrolly-bar>
@@ -56,7 +69,7 @@ export default {
 <style lang="scss" scoped>
 #tool-box {
   flex: 0 1 auto;
-  width: 30%;
+  width: 50%;
   height: 100%;
   padding: 0;
   box-sizing: border-box;

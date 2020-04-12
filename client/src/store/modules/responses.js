@@ -20,9 +20,7 @@ const responses = {
       else return "";
     },
     hasAnswer: state => wid => wid in state.answers,
-    isCompletedPhase: state => pid => pid < state.activePhase,
-    isActivePhase: state => pid => pid == state.activePhase,
-    isFuturePhase: state => pid => pid > state.activePhase,
+    activePhase: state => state.activePhase,
     textAnswers: state => sources => {
       let content = "";
       Object.values(sources).forEach(wid => {
@@ -40,7 +38,9 @@ const responses = {
     },
     resetState(state, newState) {
       Object.assign(state, newState);
-    },
+    }
+  },
+  actions: {
     setDefaultState(state) {
       Object.assign(state, getDefaultState());
     }

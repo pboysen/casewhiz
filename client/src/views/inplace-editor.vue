@@ -1,6 +1,6 @@
 <script>
 export default {
-  name: "InplaceEditor",
+  name: "inplace-editor",
   props: {
     obs: Object
   },
@@ -12,7 +12,7 @@ export default {
   },
   computed: {
     title() {
-      return this.$store.getters.phaseTitleById(this.obs.phase);
+      return this.$store.commit("phaseTitleById", this.obs.phase);
     }
   },
   methods: {
@@ -26,7 +26,7 @@ export default {
       this.$store.commit("removeObservation", this.obs);
     },
     save() {
-      let editor = document.getElementById("inplace-textarea");
+      let editor = document.getElementById("inplace-textarea-answer");
       this.obs.text = editor.value;
       this.$store.commit("updateObservation", this.obs);
       this.toggle();
@@ -55,7 +55,8 @@ export default {
           <a @click="toggle">Cancel</a>&nbsp;&nbsp;<a @click="save">Save</a>
         </div>
       </div>
-      <textarea id="inplace-textarea" :value="obs.text"></textarea>
+      <textarea-answer id="inplace-textarea-answer" :value="obs.text">
+      </textarea-answer>
     </div>
   </div>
 </template>
@@ -64,7 +65,7 @@ export default {
   position: relative;
   width: 100%;
   height: 100%;
-  textarea {
+  textarea-answer {
     width: 100%;
   }
 }
@@ -85,7 +86,7 @@ export default {
   color: $fancy-color;
 }
 .control-bar {
-  border-bottom: 1px solid $border-color;
+  background-color: $bg-menu-color;
   height: 16px;
   display: block;
   white-space: nowrap;

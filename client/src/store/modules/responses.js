@@ -15,9 +15,14 @@ const responses = {
   namespaced: true,
   state: getDefaultState(),
   getters: {
-    getAnswer: state => wid => {
+    getAnswer: (state, getters, rootState, rootGetters) => wid => {
       if (wid in state.answers) return state.answers[wid];
-      else return "";
+      else {
+        const wtype = rootGetters["widgetType"](wid);
+        if (wtype)
+          return rootGetters["factory/getWidgets"][wtype].defaultAnswer;
+        else return "";
+      }
     },
     hasAnswer: state => wid => wid in state.answers,
     activePhase: state => state.activePhase,

@@ -18,8 +18,8 @@ export default {
 <template>
   <div id="casebar">
     <role-selector></role-selector>
-    <div id="main-title">Springbuck Designer</div>
-    <case-filer v-if="isDesigner"></case-filer>
+    <div id="main-title">Allele Designer</div>
+    <case-filer></case-filer>
   </div>
 </template>
 
@@ -27,17 +27,18 @@ export default {
 #casebar {
   text-align: center;
   display: inline-block;
-  padding: 6px;
+  padding: 4px;
   white-space: nowrap;
   width: 100%;
-  height: 30px;
+  height: 20px;
   color: $fancy-color;
   border-bottom: 1px solid $border-color;
+  background-color: $bg-color;
 }
 #main-title {
   display: inline-block;
   font-family: $script-font;
   font-weight: bold;
-  font-size: 24px;
+  font-size: 14px;
 }
 </style>

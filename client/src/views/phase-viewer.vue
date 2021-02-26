@@ -7,7 +7,6 @@ import {
 } from "pdfjs-dist/web/pdf_viewer";
 import widgetsBar from "@/views/widgets/widgets-bar.vue";
 import { mapGetters } from "vuex";
-
 export default {
   name: "phase-viewer",
   components: { widgetsBar },
@@ -55,7 +54,9 @@ export default {
           viewport.div.appendChild(that.widgetLayer);
           that.$store.dispatch("displayWidgets", {
             phase: that.pindex,
-            layer: that.widgetLayer
+            page: that.page,
+            layer: that.widgetLayer,
+            transform: viewport.viewport.transform
           });
         });
       }

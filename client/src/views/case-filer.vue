@@ -9,11 +9,6 @@ export default {
       menu: ""
     };
   },
-  /*
-  mounted() {
-    eventbus.$on("loadDefault", url => this.getCaseFile(url));
-  },
-  */
   methods: {
     importIt(e) {
       e.stopPropagation();
@@ -169,8 +164,11 @@ export default {
   z-index: 10;
 }
 #files button {
+  border: 0px;
+  background-color: $bg-color;
   cursor: pointer;
-  font-size: $small-font;
+  font-size: $txt-font;
+  font-weight: bold;
   margin: 4px;
 }
 #files button:hover {
@@ -184,7 +182,7 @@ export default {
   height: 50%;
   color: black;
   font-size: $txt-font;
-  background-color: $bg-menu-color;
+  background-color: $bg-color;
   padding: 4px;
   margin: 0;
   border: 1px solid $border-color;
@@ -203,7 +201,7 @@ export default {
   border: 1px solid $border-color;
   font-size: $txt-font;
   background-color: $bg-color;
-  padding: 10px;
+  padding: 4px;
   z-index: 5;
   text-align: left;
 }

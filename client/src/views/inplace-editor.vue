@@ -12,7 +12,7 @@ export default {
   },
   computed: {
     title() {
-      return this.$store.commit("phaseTitleById", this.obs.phase);
+      return this.$store.getters.phaseTitleById(this.obs.phase);
     }
   },
   methods: {
@@ -26,7 +26,7 @@ export default {
       this.$store.commit("removeObservation", this.obs);
     },
     save() {
-      let editor = document.getElementById("inplace-textarea-answer");
+      let editor = document.getElementById("inplace-editor");
       this.obs.text = editor.value;
       this.$store.commit("updateObservation", this.obs);
       this.toggle();
@@ -55,19 +55,16 @@ export default {
           <a @click="toggle">Cancel</a>&nbsp;&nbsp;<a @click="save">Save</a>
         </div>
       </div>
-      <textarea-answer id="inplace-textarea-answer" :value="obs.text">
-      </textarea-answer>
+      <textarea id="inplace-editor" :value="obs.text"></textarea>
     </div>
   </div>
 </template>
 <style lang="scss" scoped>
-.inplace-editor {
+.inplace-editor textarea {
+  overflow: visible;
   position: relative;
   width: 100%;
   height: 100%;
-  textarea-answer {
-    width: 100%;
-  }
 }
 .content {
   font-size: $small-font;

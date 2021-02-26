@@ -1,5 +1,6 @@
 <script>
 import widgetWrapper from "@/views/widgets/widget-wrapper.vue";
+import { mapGetters } from "vuex";
 export default {
   name: "multiple-choice",
   props: {
@@ -9,51 +10,41 @@ export default {
     widgetWrapper
   },
   computed: {
+    ...mapGetters(["widgetIsLocked", "currentRole", "currentPhase"]),
     radios() {
-      let radios = [];
-      let bullet = event.target;
-      let node = bullet;
-      let index = 1;
-      while (node.offsetLeft >= bullet.offsetLeft) {
-        if (node.offsetLeft == bullet.offsetLeft) {
-          if (bullet.textContent != node.textContent) break;
-          let top = node.offsetTop - bullet.offsetTop + 5;
-          radios.push({
-            value: `mc${this.wid}`,
-            style: `left: 12px; top: ${top}px;`,
-            key: index++
-          });
-        }
-        node = node.nextElementSibling;
-      }
-      return radios;
-    },
-    pixelRatio() {
-      return window.devicePixelRatio;
+      let info = {
+        wid: this.wid,
+        phase: this.currentPhase,
+        type: "multiple-choice",
+        prop: "radios"
+      };
+      return this.$store.getters.getPropValue(info);
     }
   }
 };
 </script>
 <template>
-  <widget-wrapper widgettype="multiple-choice">
+  <widget-wrapper widgettype="multiple-choice" :wid="wid">
     <div class="multiple-choice">
-      <input
-        v-for="radio in radios"
-        type="radio"
-        :key="radio.key"
-        :value="radio.value"
-        :style="radio.style + 'transform: scale(' + pixelRatio + ');'"
-      />
+      <div v-for="radio in radios" :key="radio.key">
+        <input
+          v-if="radio.value > 0"
+          type="radio"
+          :name="`mc${wid}`"
+          :value="radio.value"
+        />
+      </div>
     </div>
   </widget-wrapper>
 </template>
 <style lang="scss" scoped>
 .multiple-choice {
-  padding: 0;
-  position: absolute;
+  display: grid;
+  grid-gap: 4px;
+  grid-auto-rows: 1em;
+  background-color: white;
 }
 .multiple-choice input[type="radio"] {
   margin: 0;
-  position: absolute;
 }
 </style>

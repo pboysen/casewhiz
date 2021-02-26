@@ -41,7 +41,8 @@ export default {
       } else return false;
     },
     isSubWidget() {
-      return this.$store.getters.getWidgets[this.wid].subWidget;
+      return false;
+      //return this.getWidgets[this.wid].subWidget;
     },
     incomplete() {
       return this.$store.getters.incomplete(this.wid);
@@ -53,6 +54,7 @@ export default {
     },
     startDrag(e) {
       if (this.active && this.isRole("designer")) {
+        e.stopPropagation();
         this.dragging = true;
         this.$store.commit("setCurrentWidget", this.wid);
         this.$store.commit("setDrawerEvent", {
@@ -62,12 +64,15 @@ export default {
         });
       }
     },
-    stopDrag() {
-      this.dragging = false;
-      window.onmousemove = null;
-      if (!this.active || !this.isRole("designer") || this.isSubWidget) return;
-      var rect = this.$el.getBoundingClientRect();
-      this.$store.commit("setWidgetRect", rect);
+    stopDrag(e) {
+      if (this.active && this.isRole("designer")) {
+        e.stopPropagation();
+        this.dragging = false;
+        window.onmousemove = null;
+        if (this.isSubWidget) return;
+        var rect = this.$el.getBoundingClientRect();
+        this.$store.commit("setWidgetRect", rect);
+      }
     },
     copyDelete(e) {
       if (!(this.active && this.isRole("designer")) || this.isSubWidget) return;
@@ -91,8 +96,6 @@ export default {
           this.$store.commit("deleteWidget", this.wid);
           this.active = false;
         }
-      } else {
-        this.$store.commit("setCurrentWidget", this.wid);
       }
     }
   }
@@ -108,13 +111,14 @@ export default {
       { subwidget: isSubWidget }
     ]"
     @mousedown="startDrag($event)"
-    @mouseup="stopDrag"
-    @click="copyDelete"
+    @mouseup="stopDrag($event)"
+    @click="copyDelete($event)"
   >
     <slot></slot>
     <span class="optional" v-show="optional">*optional</span>
   </div>
 </template>
+
 <style lang="scss" scoped>
 .widget {
   box-sizing: border-box;
@@ -131,7 +135,7 @@ export default {
 }
 .widget::before {
   font-size: 10px;
-  content: attr(wid);
+  // content: attr(wid);
   position: absolute;
   top: 2px;
   left: 2px;
@@ -143,7 +147,7 @@ export default {
   position: absolute;
   top: 0px;
   right: 0px;
-  content: url(../../assets/img/widget.png);
+  // content: url(../../assets/img/widget.png);
 }
 .widget.subwidget:hover::after {
   display: none;

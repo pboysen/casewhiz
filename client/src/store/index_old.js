@@ -2,8 +2,6 @@ import Vue from "vue";
 import Vuex from "vuex";
 import factory from "./modules/factory";
 import responses from "./modules/responses";
-import md5 from "md5";
-import { OPS, Util } from "pdfjs-dist/webpack";
 
 Vue.use(Vuex);
 
@@ -21,7 +19,6 @@ const getDefaultState = () => {
     phases: [],
     widgets: {},
     tools: {},
-    fileTypes: ["image/*", "application/pdf", "application/case", "text/csv"],
     selectedWidgetTypes: [
       "textfield-widget",
       "textarea-widget",
@@ -29,9 +26,7 @@ const getDefaultState = () => {
       "carry-forward",
       "media-widget",
       "image-widget",
-      "table-widget",
-      "upload-widget"
-      //"zoom-widget"
+      "table-widget"
     ],
     selectedToolTypes: ["observations-tool", "comments-tool"]
   };
@@ -49,7 +44,6 @@ const store = new Vuex.Store({
     currentPhase: state => state.phase,
     currentWidget: state => state.widget,
     currentTool: state => state.tool,
-    fileTypes: state => state.fileTypes,
     getPhases: state => state.phases,
     getWidgets: state => state.phases[state.phase].widgets,
     getCurrentPhase: state => state.phases[state.phase],
@@ -62,14 +56,6 @@ const store = new Vuex.Store({
     comments: state => state.tools["comments-tool"],
     resources: state => state.tools["resources-tool"],
     getPhaseWidget: state => info => state.phases[info.phase].widgets[info.wid],
-    widgetType: state => wid => {
-      let type = null;
-      state.phases.forEach(phase => {
-        if (wid in phase.widgets) type = phase.widgets[wid].type;
-      });
-      return type;
-    },
-    phaseTitleById: state => pid => state.phases[pid].title,
     phaseIsLocked: state => pid =>
       state.role === "student" && pid > store.getters["responses/activePhase"],
     incomplete: state => wid => state.incomplete.includes(wid),
@@ -124,6 +110,7 @@ const store = new Vuex.Store({
       Object.assign(state, newState);
       store.commit("setCurrentPhase", -1);
     },
+    phaseTitleById: (state, pid) => state.phases[pid].title,
     setDrawerEvent(state, event) {
       state.drawerEvent = event;
     },
@@ -139,8 +126,8 @@ const store = new Vuex.Store({
       Vue.set(state, "phases", phases);
     },
     setCurrentPhase(state, n) {
-      state.phase = n;
       state.widget = null;
+      state.phase = n;
     },
     setCurrentTool(state, aTool) {
       state.tool = aTool;
@@ -186,14 +173,21 @@ const store = new Vuex.Store({
     },
     addNewWidget(state, info) {
       let wid = state.wcnt++;
-      let prototype =
-        store.getters["factory/getWidgets"][info.preset.type].prototype;
-      info.wrec = JSON.parse(JSON.stringify(prototype));
-      info.wrec.props = { ...info.wrec.props, ...info.preset.props };
-      info.wrec.rect = info.rect;
+      store.commit("setCurrentWidget", wid);
+      store.commit("setDrawerEvent", {
+        wid: wid,
+        type: info.type,
+        top: info.top
+      });
+      if (!info.wrec) {
+        let prototype =
+          store.getters["factory/getWidgets"][info.type].prototype;
+        info.wrec = JSON.parse(JSON.stringify(prototype));
+      }
       info.wrec.id = wid;
       Vue.set(store.getters.getWidgets, wid, info.wrec);
       info.store = store;
+      store.commit("factory/makeWidget", info);
     },
     copyWidget(state, info) {
       info.wrec = jsonCopy(store.getters.getWidgets[info.wid]);
@@ -266,137 +260,6 @@ const store = new Vuex.Store({
     },
     displayWidgets(state, info) {
       info.store = store;
-      store.dispatch("configureWidgets", info).then(() => {
-        Object.values(store.getters.getWidgets).forEach(w => {
-          info.wrec = w;
-          info.type = w.type;
-          store.commit("factory/makeWidget", info);
-        });
-      });
-    },
-    configureWidgets(state, info) {
-      return new Promise(resolve => {
-        if (Object.keys(store.getters.getWidgets).length != 0) {
-          resolve();
-          return;
-        }
-        info.page.getOperatorList().then(ops => {
-          let images = [];
-          let tr = null;
-          for (var i = 0; i < ops.fnArray.length; i++) {
-            if (ops.fnArray[i] == OPS.transform) tr = ops.argsArray[i];
-            else if (ops.fnArray[i] == OPS.paintImageXObject) {
-              images.push([ops.argsArray[i], tr]);
-            }
-          }
-          images.forEach(imgData => {
-            info.page.objs.get(imgData[0][0], img => {
-              let preset = store.getters["factory/getPreset"](md5(img.data));
-              if (preset) {
-                let tr = Util.transform(info.transform, imgData[1]);
-                let data = {
-                  page: info.page,
-                  phase: info.phase,
-                  layer: info.layer,
-                  preset: preset,
-                  rect: {
-                    left: Math.round(tr[4]),
-                    top: Math.round(tr[5] - img.height),
-                    width: img.width,
-                    height: img.height
-                  }
-                };
-                store.commit("addNewWidget", data);
-              }
-            });
-          });
-          //setTimeout(store.dispatch("configureLists", info), 2000);
-          resolve();
-        });
-      });
-    },
-    /*
-    configureLists(state, info) {
-      function findBullets(node) {
-        let bullet = node;
-        let list = [];
-        let index = 1;
-        let value = 1;
-        let top = node.offsetTop;
-        while (node.offsetLeft >= bullet.offsetLeft) {
-          if (node.offsetLeft == bullet.offsetLeft) {
-            if (bullet.textContent != node.textContent) break;
-            list.push({ key: index++, value: value++ });
-            top = node.offsetTop;
-          } else if (node.offsetTop > top) {
-            top = node.offsetTop;
-            list.push({ key: index++, value: 0 });
-          }
-          node = node.nextSibling;
-        }
-        return [node, list];
-      }
-      let left, top, list, data;
-      let node = info.textLayer.firstChild;
-      while (node != null) {
-        switch (node.textContent) {
-          case "o":
-            left = node.offsetLeft;
-            top = node.offsetTop;
-            [node, list] = findBullets(node);
-            data = {
-              page: info.page,
-              phase: info.phase,
-              layer: info.layer,
-              preset: {
-                type: "multiple-choice",
-                props: {
-                  radios: list
-                }
-              },
-              rect: {
-                left: left,
-                top: top - 2,
-                width: 20,
-                height: node.offsetTop - top
-              }
-            };
-            store.commit("addNewWidget", data);
-            break;
-          case "":
-            left = node.offsetLeft;
-            top = node.offsetTop;
-            [node, list] = findBullets(node);
-            data = {
-              page: info.page,
-              phase: info.phase,
-              layer: info.layer,
-              preset: {
-                type: "check-list",
-                props: {
-                  checks: list
-                }
-              },
-              rect: {
-                left: left,
-                top: top - 2,
-                width: 20,
-                height: node.offsetTop - top
-              }
-            };
-            store.commit("addNewWidget", data);
-        }
-        node = node.nextSibling;
-      }
-    },
-    */
-    displaySubWidget(state, info) {
-      info.store = store;
-      store.commit("factory/makeSubWidget", info);
-    }
-    /*
-    displayWidgets(state, info) {
-      info.store = store;
       Object.values(store.getters.getWidgets).forEach(w => {
         info.wrec = w;
         info.type = w.type;
@@ -410,7 +273,6 @@ const store = new Vuex.Store({
       console.log(info);
       store.commit("factory/makeSubWidget", info);
     }
-  */
   }
 });
 /*

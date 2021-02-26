@@ -51,7 +51,7 @@ export default {
 </template>
 <style lang="scss">
 .widget input {
-  font-size: $small-font;
+  font-size: $txt-font;
   cursor: grab;
   border-radius: 0;
 }

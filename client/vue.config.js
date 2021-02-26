@@ -1,4 +1,18 @@
+const webpack = require('webpack')
 module.exports = {
+  configureWebpack: {
+    plugins: [
+      new webpack.ProvidePlugin({
+        $: 'jquery',
+        jquery: 'jquery',
+        'window.jQuery': 'jquery',
+        jQuery: 'jquery'
+      })
+    ],
+    devServer: {
+      headers: { "Access-Control-Allow-Origin": "*" }
+    }
+  },
   publicPath: "/springbuck/",
   css: {
     loaderOptions: {
@@ -9,8 +23,5 @@ module.exports = {
         `
       }
     }
-  },
-  devServer: {
-      proxy: 'http://springbuck/',
   }
 };

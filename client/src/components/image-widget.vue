@@ -1,5 +1,5 @@
 <script>
-import widgetWrapper from "@/views/widgets/widget-wrapper.vue";
+import widgetWrapper from "@/components/widget-wrapper.vue";
 import { mapGetters } from "vuex";
 export default {
   name: "image-widget",
@@ -147,6 +147,6 @@ export default {
   position: absolute;
   top: 0px;
   right: 0px;
-  content: url(../../assets/img/image-menu.png);
+  content: url(../assets/img/image-menu.png);
 }
 </style>

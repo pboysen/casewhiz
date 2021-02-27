@@ -1,7 +1,7 @@
 <script>
 import * as createjs from "createjs-module";
 import PcDownloadImage from "./PcDownloadImage.vue";
-import widgetWrapper from "@/views/widgets/widget-wrapper.vue";
+import widgetWrapper from "@/components/widget-wrapper.vue";
 import { makeStage, getBack } from "./mixins/basedraw";
 import { mapGetters } from "vuex";
 export default {
@@ -141,7 +141,7 @@ export default {
 </script>
 <template>
   <widget-wrapper widgettype="pc-draw-label" :wid="wid">
-    <label for="labeltext">Label:<br/></label>
+    <label for="labeltext">Label:<br /></label>
     <textarea
       id="labeltext"
       @input="input($event)"

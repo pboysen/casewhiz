@@ -1,5 +1,5 @@
 <script>
-import inplaceEditor from "@/views/inplace-editor.vue";
+import inplaceEditor from "@/components/inplace-editor.vue";
 import { mapGetters } from "vuex";
 export default {
   name: "observations-tool",

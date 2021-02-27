@@ -1,9 +1,9 @@
 <script>
 import eventbus from "@/main";
-import phaseBar from "@/views/phase-bar.vue";
-import propertyDrawer from "@/views/property-drawer.vue";
-import phaseViewer from "@/views/phase-viewer.vue";
-import submitBar from "@/views/submit-bar.vue";
+import phaseBar from "@/components/phase-bar.vue";
+import propertyDrawer from "@/components/property-drawer.vue";
+import phaseViewer from "@/components/phase-viewer.vue";
+import submitBar from "@/components/submit-bar.vue";
 import { mapGetters } from "vuex";
 export default {
   name: "case-viewer",

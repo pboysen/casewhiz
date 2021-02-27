@@ -1,8 +1,8 @@
 <script>
-import widgetWrapper from "@/views/widgets/widget-wrapper.vue";
-import selectWidget from "@/views/widgets/select-widget.vue";
-import textfieldWidget from "@/views/widgets/textfield-widget.vue";
-import uploadButton from "@/views/upload-button.vue";
+import widgetWrapper from "@/components/widget-wrapper.vue";
+import selectWidget from "@/components/select-widget.vue";
+import textfieldWidget from "@/components/textfield-widget.vue";
+import uploadButton from "@/components/upload-button.vue";
 import propsMixin from "@/mixins/props-mixin.js";
 import * as csv from "csvtojson";
 import { mapGetters } from "vuex";

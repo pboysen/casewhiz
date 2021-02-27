@@ -1,6 +1,6 @@
 <script>
 import PcDownloadImage from "./PcDownloadImage.vue";
-import widgetWrapper from "@/views/widgets/widget-wrapper.vue";
+import widgetWrapper from "@/components/widget-wrapper.vue";
 import { makeStage, getBack } from "./mixins/basedraw";
 import { mapGetters } from "vuex";
 export default {

@@ -5,7 +5,7 @@ import {
   DefaultTextLayerFactory,
   DefaultAnnotationLayerFactory
 } from "pdfjs-dist/web/pdf_viewer";
-import widgetsBar from "@/views/widgets/widgets-bar.vue";
+import widgetsBar from "@/components/widgets-bar.vue";
 import { mapGetters } from "vuex";
 export default {
   name: "phase-viewer",

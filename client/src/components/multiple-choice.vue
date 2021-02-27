@@ -1,8 +1,8 @@
 <script>
-import widgetWrapper from "@/views/widgets/widget-wrapper.vue";
+import widgetWrapper from "@/components/widget-wrapper.vue";
 import { mapGetters } from "vuex";
 export default {
-  name: "check-list",
+  name: "multiple-choice",
   props: {
     wid: Number
   },
@@ -11,43 +11,40 @@ export default {
   },
   computed: {
     ...mapGetters(["widgetIsLocked", "currentRole", "currentPhase"]),
-    checks() {
+    radios() {
       let info = {
         wid: this.wid,
         phase: this.currentPhase,
-        type: "check-list",
-        prop: "checks"
+        type: "multiple-choice",
+        prop: "radios"
       };
       return this.$store.getters.getPropValue(info);
-    },
-    pixelRatio() {
-      return window.devicePixelRatio;
     }
   }
 };
 </script>
 <template>
-  <widget-wrapper widgettype="check-list">
-    <div class="check-list">
-      <div v-for="check in checks" :key="check.key">
+  <widget-wrapper widgettype="multiple-choice" :wid="wid">
+    <div class="multiple-choice">
+      <div v-for="radio in radios" :key="radio.key">
         <input
-          v-if="check.value > 0"
-          :name="`cl${wid}.${check.value}`"
-          type="checkbox"
-          :value="check.value"
+          v-if="radio.value > 0"
+          type="radio"
+          :name="`mc${wid}`"
+          :value="radio.value"
         />
       </div>
     </div>
   </widget-wrapper>
 </template>
-<style lang="scss">
-.check-list {
+<style lang="scss" scoped>
+.multiple-choice {
   display: grid;
   grid-gap: 4px;
   grid-auto-rows: 1em;
   background-color: white;
 }
-.check-list input[type="check"] {
+.multiple-choice input[type="radio"] {
   margin: 0;
 }
 </style>

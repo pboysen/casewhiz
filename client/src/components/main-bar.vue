@@ -1,6 +1,6 @@
 <script>
-import roleSelector from "@/views/role-selector.vue";
-import caseFiler from "@/views/case-filer.vue";
+import roleSelector from "@/components/role-selector.vue";
+import caseFiler from "@/components/case-filer.vue";
 export default {
   name: "main-bar",
   components: {

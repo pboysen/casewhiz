@@ -1,5 +1,5 @@
 <script>
-import widgetWrapper from "@/views/widgets/widget-wrapper.vue";
+import widgetWrapper from "@/components/widget-wrapper.vue";
 import { mapGetters } from "vuex";
 export default {
   name: "select-widget",

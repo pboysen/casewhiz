@@ -1,4 +1,4 @@
-<script> 
+<script>
 export default {
   props: {
     title: String,
@@ -6,7 +6,6 @@ export default {
   },
   methods: {
     download() {
-      console.log("click");
       let a = document.getElementById("download");
       let dt = this.stage.canvas.toDataURL("image/png");
       /* Change MIME type to trick the browser to download the file

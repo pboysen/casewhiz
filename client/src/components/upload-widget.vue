@@ -1,6 +1,6 @@
 <script>
-import widgetWrapper from "@/views/widgets/widget-wrapper.vue";
-import uploadButton from "@/views/upload-button.vue";
+import widgetWrapper from "@/components/widget-wrapper.vue";
+import uploadButton from "@/components/upload-button.vue";
 import { mapGetters } from "vuex";
 export default {
   name: "upload-widget",

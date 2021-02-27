@@ -1,8 +1,8 @@
 <script>
 import { Scrolly, ScrollyViewport, ScrollyBar } from "vue-scrolly";
-import resourcesTool from "@/views/tools/resources-tool.vue";
-import commentsTool from "@/views/tools/comments-tool.vue";
-import observationsTool from "@/views/tools/observations-tool.vue";
+import resourcesTool from "@/components/tools/resources-tool.vue";
+import commentsTool from "@/components/tools/comments-tool.vue";
+import observationsTool from "@/components/tools/observations-tool.vue";
 import { mapGetters } from "vuex";
 export default {
   name: "tool-box",

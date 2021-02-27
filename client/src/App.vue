@@ -1,6 +1,6 @@
 <script>
-import mainBar from "@/views/main-bar.vue";
-import caseViewer from "@/views/case-viewer.vue";
+import mainBar from "@/components/main-bar.vue";
+import caseViewer from "@/components/case-viewer.vue";
 
 export default {
   name: "App",

@@ -1,5 +1,5 @@
 <script>
-import propsMenu from "@/views/props-menu.vue";
+import propsMenu from "@/components/props-menu.vue";
 import { mapGetters } from "vuex";
 
 export default {

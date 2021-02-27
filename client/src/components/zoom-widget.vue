@@ -1,5 +1,5 @@
 <script>
-import widgetWrapper from "@/views/widgets/widget-wrapper.vue";
+import widgetWrapper from "@/components/widget-wrapper.vue";
 import { ZoomMtg } from "@zoomus/websdk";
 
 ZoomMtg.setZoomJSLib("https://dmogdx0jrul3u.cloudfront.net/1.7.2/lib", "/av");
